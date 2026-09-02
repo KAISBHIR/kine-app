@@ -1,0 +1,37 @@
+{
+  "id": "sit_to_stand",
+  "version": 1,
+  "nameKey": "exercise.sit_to_stand",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Chair height changes the seated knee angle substantially; consider a per-patient calibration rep before this ships.",
+  "clinical": { "status": "draft" },
+  "camera": {
+    "view": "side",
+    "distanceM": 2.5,
+    "height": "seated_chest",
+    "setupCueKey": "cue.setup_side_view"
+  },
+  "requiredParts": ["shoulder", "hip", "knee", "ankle"],
+  "side": "auto",
+  "signal": { "type": "jointAngle", "joint": "knee" },
+  "rep": {
+    "enterDeg": 160,
+    "exitDeg": 105,
+    "minHoldMs": 200,
+    "minDurationMs": 1500,
+    "maxDurationMs": 15000
+  },
+  "rom": { "goalPeakDeg": 172, "minAcceptablePeakDeg": 150 },
+  "tempo": { "idealMs": 5000 },
+  "formRules": [
+    {
+      "id": "too_fast",
+      "type": "velocity",
+      "maxDegPerSec": 160,
+      "cueKey": "cue.slow_down",
+      "severity": "info",
+      "debounceMs": 500,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": { "maxSetDurationMs": 180000, "stopOn": ["severe_pain", "dizziness"] }
+}

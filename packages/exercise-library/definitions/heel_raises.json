@@ -1,0 +1,37 @@
+{
+  "id": "heel_raises",
+  "version": 1,
+  "nameKey": "exercise.heel_raises",
+  "notes": "PLACEHOLDER THRESHOLDS - LEAST RELIABLE OF THE FIVE. Ankle angle from foot landmarks is noisy and shoes change it. Validate on Day 1; if the signal is unstable, drop this exercise rather than shipping a bad rep count.",
+  "clinical": { "status": "draft" },
+  "camera": {
+    "view": "side",
+    "distanceM": 2.5,
+    "height": "hip",
+    "setupCueKey": "cue.setup_side_view"
+  },
+  "requiredParts": ["knee", "ankle", "heel", "foot"],
+  "side": "auto",
+  "signal": { "type": "jointAngle", "joint": "ankle" },
+  "rep": {
+    "enterDeg": 125,
+    "exitDeg": 100,
+    "minHoldMs": 300,
+    "minDurationMs": 1000,
+    "maxDurationMs": 8000
+  },
+  "rom": { "goalPeakDeg": 132, "minAcceptablePeakDeg": 112 },
+  "tempo": { "idealMs": 3000 },
+  "formRules": [
+    {
+      "id": "too_fast",
+      "type": "velocity",
+      "maxDegPerSec": 150,
+      "cueKey": "cue.slow_down",
+      "severity": "info",
+      "debounceMs": 500,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": { "maxSetDurationMs": 180000, "stopOn": ["severe_pain", "dizziness"] }
+}

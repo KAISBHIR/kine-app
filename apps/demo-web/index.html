@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <!-- Day 1 verification: install to the iOS home screen and confirm
+         getUserMedia still works in standalone mode. Fallback is a Safari link. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Rééducation à domicile — démo</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="draft-banner" class="banner">
+      Définitions d’exercice non validées cliniquement — usage interne
+    </div>
+
+    <!-- Start screen -->
+    <section id="screen-start" class="screen">
+      <h1>Votre séance</h1>
+      <p class="lead">Placez le téléphone sur une table, à environ 2 mètres.</p>
+
+      <label class="field">
+        <span>Exercice</span>
+        <select id="exercise-select"></select>
+      </label>
+
+      <label class="field">
+        <span>Répétitions</span>
+        <select id="target-select">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+        </select>
+      </label>
+
+      <button id="btn-start" class="primary">Commencer</button>
+      <p id="start-error" class="error" hidden></p>
+    </section>
+
+    <!-- Camera + session screen -->
+    <section id="screen-session" class="screen" hidden>
+      <div class="stage">
+        <video id="video" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+
+        <div id="hud" class="hud">
+          <div id="rep-counter" class="counter"><span id="rep-done">0</span><span class="slash">/</span><span id="rep-target">10</span></div>
+          <div id="status" class="status">Préparation…</div>
+        </div>
+
+        <div id="cue" class="cue" hidden></div>
+
+        <div class="controls">
+          <button id="btn-record" class="ghost">● Enregistrer</button>
+          <button id="btn-debug" class="ghost">Détails</button>
+          <button id="btn-stop" class="danger">Terminer</button>
+        </div>
+
+        <pre id="debug" class="debug" hidden></pre>
+      </div>
+    </section>
+
+    <!-- Summary screen -->
+    <section id="screen-done" class="screen" hidden>
+      <h1>Séance terminée</h1>
+      <div class="summary">
+        <div class="stat"><b id="sum-reps">0</b><span>répétitions</span></div>
+        <div class="stat"><b id="sum-quality">—</b><span>qualité du mouvement</span></div>
+        <div class="stat"><b id="sum-duration">—</b><span>durée</span></div>
+      </div>
+      <p class="estimate">
+        Amplitude estimée&nbsp;: <b id="sum-rom">—</b><br />
+        <small>Valeur indicative issue de la caméra, ce n’est pas une mesure clinique.</small>
+      </p>
+      <div id="sum-cues" class="cues"></div>
+      <button id="btn-again" class="primary">Nouvelle séance</button>
+    </section>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "id": "standing_hip_abduction",
+  "version": 1,
+  "nameKey": "exercise.standing_hip_abduction",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Front view exercise, so the patient can read the screen; this is the best candidate for the first demo if the side-view camera setup proves fiddly.",
+  "clinical": { "status": "draft" },
+  "camera": {
+    "view": "front",
+    "distanceM": 2.5,
+    "height": "hip",
+    "setupCueKey": "cue.setup_distance"
+  },
+  "requiredParts": ["shoulder", "hip", "knee", "ankle"],
+  "side": "auto",
+  "signal": { "type": "segmentTilt", "from": "hip", "to": "knee" },
+  "rep": {
+    "enterDeg": 22,
+    "exitDeg": 8,
+    "minHoldMs": 400,
+    "minDurationMs": 1500,
+    "maxDurationMs": 12000
+  },
+  "rom": { "goalPeakDeg": 30, "minAcceptablePeakDeg": 18 },
+  "tempo": { "idealMs": 4000 },
+  "formRules": [
+    {
+      "id": "torso_lean",
+      "type": "segmentTilt",
+      "from": "shoulder",
+      "to": "hip",
+      "maxDeg": 15,
+      "cueKey": "cue.stand_tall",
+      "severity": "info",
+      "debounceMs": 700,
+      "cooldownMs": 6000
+    }
+  ],
+  "safety": { "maxSetDurationMs": 180000, "stopOn": ["severe_pain", "dizziness"] }
+}

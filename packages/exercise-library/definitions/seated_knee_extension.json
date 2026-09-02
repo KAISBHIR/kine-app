@@ -1,0 +1,59 @@
+{
+  "id": "seated_knee_extension",
+  "version": 1,
+  "nameKey": "exercise.seated_knee_extension",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Calibrate enterDeg/exitDeg/rom from Day 1 recordings of a real patient before any patient-facing use.",
+  "clinical": { "status": "draft" },
+  "camera": {
+    "view": "side",
+    "distanceM": 2.0,
+    "height": "seated_chest",
+    "setupCueKey": "cue.setup_side_view"
+  },
+  "requiredParts": ["shoulder", "hip", "knee", "ankle"],
+  "side": "auto",
+  "signal": { "type": "jointAngle", "joint": "knee" },
+  "rep": {
+    "enterDeg": 150,
+    "exitDeg": 100,
+    "minHoldMs": 300,
+    "minDurationMs": 1200,
+    "maxDurationMs": 12000
+  },
+  "rom": { "goalPeakDeg": 165, "minAcceptablePeakDeg": 130 },
+  "tempo": { "idealMs": 4000 },
+  "formRules": [
+    {
+      "id": "torso_lean",
+      "type": "segmentTilt",
+      "from": "shoulder",
+      "to": "hip",
+      "maxDeg": 20,
+      "cueKey": "cue.keep_back_against_chair",
+      "severity": "info",
+      "debounceMs": 700,
+      "cooldownMs": 6000
+    },
+    {
+      "id": "too_fast",
+      "type": "velocity",
+      "maxDegPerSec": 140,
+      "cueKey": "cue.slow_down",
+      "severity": "info",
+      "debounceMs": 500,
+      "cooldownMs": 8000
+    },
+    {
+      "id": "hip_lift",
+      "type": "landmarkDrift",
+      "part": "hip",
+      "axis": "y",
+      "maxDelta": 0.045,
+      "cueKey": "cue.keep_hips_down",
+      "severity": "info",
+      "debounceMs": 700,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": { "maxSetDurationMs": 180000, "stopOn": ["severe_pain", "dizziness"] }
+}

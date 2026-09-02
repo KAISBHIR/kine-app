@@ -1,0 +1,282 @@
+/*
+ * Accessibility floor for this demo, matching what the real app must do:
+ *   - minimum 18px body text, 64px touch targets
+ *   - contrast at least 4.5:1 on every text/background pair
+ *   - no information carried by colour alone
+ * The designer's system replaces this. These are the constraints it must meet.
+ */
+
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #f8fafc;
+  --muted: #cbd5e1;
+  --accent: #22c55e;
+  --accent-text: #052e16;
+  --warn: #fbbf24;
+  --danger: #ef4444;
+  --radius: 16px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 18px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+.banner {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  padding: 6px 12px;
+  background: var(--warn);
+  color: #422006;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.screen {
+  min-height: 100%;
+  padding: 44px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field span {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+select {
+  min-height: 64px;
+  padding: 0 16px;
+  font-size: 20px;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid #475569;
+  border-radius: var(--radius);
+}
+
+button {
+  min-height: 64px;
+  padding: 0 24px;
+  font-size: 20px;
+  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+button.ghost {
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--text);
+  border: 1px solid #64748b;
+}
+
+button.danger {
+  min-height: 48px;
+  font-size: 15px;
+  background: var(--danger);
+  color: #fff;
+}
+
+.error {
+  color: #fca5a5;
+  font-size: 16px;
+}
+
+/* --- session stage ----------------------------------------------------- */
+
+#screen-session {
+  max-width: none;
+  padding: 0;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: #000;
+  overflow: hidden;
+}
+
+#video,
+#overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hud {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+
+.counter {
+  font-size: 92px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter .slash,
+.counter #rep-target {
+  font-size: 44px;
+  color: var(--muted);
+}
+
+.status {
+  font-size: 20px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.status.ok {
+  color: var(--accent);
+}
+
+.status.lost {
+  color: var(--warn);
+}
+
+.cue {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 110px;
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  background: rgba(15, 23, 42, 0.92);
+  border-left: 6px solid var(--warn);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.controls {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.debug {
+  position: absolute;
+  left: 12px;
+  top: 200px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(2, 6, 23, 0.85);
+  color: #7dd3fc;
+  font: 13px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  white-space: pre;
+}
+
+/* --- summary ----------------------------------------------------------- */
+
+.summary {
+  display: flex;
+  gap: 12px;
+}
+
+.stat {
+  flex: 1;
+  padding: 20px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+}
+
+.stat b {
+  display: block;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.stat span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.estimate {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.estimate b {
+  color: var(--text);
+}
+
+.estimate small {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.cues:not(:empty) {
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 16px;
+}

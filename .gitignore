@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.expo/
+*.log
+.env
+.env.local
+.DS_Store
+
+# Model binaries are fetched, not committed: npm run fetch:model -w @kine/demo-web
+*.task
+
+# Recorded landmark fixtures ARE committed on purpose — they are the test suite.
+# Raw video never is.
+*.mp4
+*.mov
+*.webm

@@ -1,0 +1,38 @@
+{
+  "id": "straight_leg_raise",
+  "version": 1,
+  "nameKey": "exercise.straight_leg_raise",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Supine exercise: the phone must be at floor level, which is the hardest camera setup of the five. Validate that pose detection is reliable lying down before committing to this exercise.",
+  "clinical": { "status": "draft" },
+  "camera": {
+    "view": "side",
+    "distanceM": 2.5,
+    "height": "floor",
+    "setupCueKey": "cue.setup_side_view"
+  },
+  "requiredParts": ["shoulder", "hip", "knee", "ankle"],
+  "side": "auto",
+  "signal": { "type": "jointAngle", "joint": "hip" },
+  "rep": {
+    "enterDeg": 140,
+    "exitDeg": 168,
+    "minHoldMs": 500,
+    "minDurationMs": 2000,
+    "maxDurationMs": 15000
+  },
+  "rom": { "goalPeakDeg": 130, "minAcceptablePeakDeg": 150 },
+  "tempo": { "idealMs": 5000 },
+  "formRules": [
+    {
+      "id": "knee_bent",
+      "type": "jointAngle",
+      "joint": "knee",
+      "minDeg": 160,
+      "cueKey": "cue.keep_knee_straight",
+      "severity": "info",
+      "debounceMs": 800,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": { "maxSetDurationMs": 180000, "stopOn": ["severe_pain", "dizziness"] }
+}
