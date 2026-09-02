@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OneEuroFilter } from '@kine/movement-engine';
-import { mulberry32 } from './fixtures/synth.js';
+import { OneEuroFilter, mulberry32 } from '@kine/movement-engine';
 
 function variance(xs: number[]): number {
   const m = xs.reduce((a, b) => a + b, 0) / xs.length;

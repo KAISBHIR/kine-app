@@ -1,6 +1,6 @@
 import { FilesetResolver, PoseLandmarker, type NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { LANDMARK_COUNT, type Frame, type Landmark } from '@kine/shared';
-import { BasePoseSource } from './index.js';
+import { BasePoseSource } from './base';
 
 /** Keep in step with the @mediapipe/tasks-vision version in package.json. */
 export const TASKS_VISION_VERSION = '1.0.1';

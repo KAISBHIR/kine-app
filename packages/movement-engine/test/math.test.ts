@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { angleDeg, segmentTiltFromVerticalDeg } from '@kine/movement-engine';
-import { jointAngle } from '../src/signal.js';
-import { mulberry32, skeletonForKneeAngle } from './fixtures/synth.js';
+import {
+  angleDeg,
+  mulberry32,
+  segmentTiltFromVerticalDeg,
+  skeletonForKneeAngle,
+} from '@kine/movement-engine';
+import { jointAngle } from '../src/signal';
 
 describe('angleDeg', () => {
   it('measures a right angle at the vertex', () => {

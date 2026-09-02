@@ -1,5 +1,5 @@
 import { LANDMARK_COUNT, type Frame, type Landmark } from '@kine/shared';
-import { DEFAULT_ONE_EURO, OneEuroFilter, type OneEuroParams } from './oneEuro.js';
+import { DEFAULT_ONE_EURO, OneEuroFilter, type OneEuroParams } from './oneEuro';
 
 /**
  * Applies a One Euro filter to every landmark's x and y, and a light EMA to

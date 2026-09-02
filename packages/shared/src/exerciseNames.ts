@@ -1,4 +1,4 @@
-import type { Locale } from './cues.js';
+import type { Locale } from './cues';
 
 /**
  * Display + spoken names for exercises. Kept beside the cue catalogue because

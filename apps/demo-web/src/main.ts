@@ -9,10 +9,11 @@ import {
 } from '@kine/shared';
 import { ExerciseSession, computeSignal, type ExerciseDefinition } from '@kine/movement-engine';
 import { getExercise, listExercises } from '@kine/exercise-library';
-import { WebPoseSource } from '@kine/pose-source';
-import { drawSkeleton, fitOverlay } from './skeleton.js';
-import { WebSpeechVoice } from './voice.js';
-import { LandmarkRecorder } from './recorder.js';
+import { LandmarkRecorder } from '@kine/pose-source';
+import { WebPoseSource } from '@kine/pose-source/web';
+import { drawSkeleton, fitOverlay } from './skeleton';
+import { WebSpeechVoice } from './voice';
+import { downloadFixture } from './recorder';
 
 const LOCALE: Locale = 'fr';
 
@@ -290,8 +291,8 @@ function hideCue(): void {
 
 function toggleRecording(): void {
   if (recorder.isRecording) {
-    const fixture = recorder.stop(prompt('Note pour cet enregistrement ?') ?? '');
-    LandmarkRecorder.download(fixture);
+    const note = prompt('Note pour cet enregistrement ?') ?? '';
+    downloadFixture(recorder.stop(note, navigator.userAgent));
     els.btnRecord.textContent = '● Enregistrer';
   } else {
     recorder.start(def.id);

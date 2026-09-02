@@ -9,6 +9,8 @@ export default defineConfig({
       '@kine/shared': r('../../packages/shared/src/index.ts'),
       '@kine/movement-engine': r('../../packages/movement-engine/src/index.ts'),
       '@kine/exercise-library': r('../../packages/exercise-library/src/index.ts'),
+      // More specific first: Vite matches aliases in order.
+      '@kine/pose-source/web': r('../../packages/pose-source/src/web.ts'),
       '@kine/pose-source': r('../../packages/pose-source/src/index.ts'),
     },
   },

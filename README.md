@@ -30,6 +30,17 @@ Vite prints a Network URL. Open it on a phone on the same wifi — camera access
 needs HTTPS or localhost, so for a physical device use the Network URL over a
 tunnel, or run `npx vite preview --host` behind https.
 
+### Mobile (Expo, Android)
+
+```
+npm start -w @kine/mobile
+```
+
+Scan the QR with Expo Go. It runs today against `MockPoseSource`, which replays
+a synthetic patient — every screen, the voice coaching and the summary work
+before the camera exists. Flip `POSE_SOURCE` in `src/App.tsx` to `'camera'`
+once the frame processor lands; wiring steps are in `src/poseSource.ts`.
+
 ```
 npm test
 ```
@@ -37,6 +48,20 @@ npm test
 ```
 npm run typecheck
 ```
+
+### Two config landmines already cleared — do not undo these
+
+**1. Relative imports inside `packages/` carry no file extension.** Vite and
+Vitest resolve `'./foo.js'` to `foo.ts`; Metro does not, and every `@kine/*`
+import fails at bundle time. Write `from './foo'`.
+
+**2. Dependency versions are pinned by `npx expo install`, not by npm `latest`.**
+Expo SDK 57 bundles React Native 0.86.3. Installing 0.87 from npm breaks the
+bundler in a way whose error message points nowhere near the cause. Add
+packages with `npx expo install <pkg>` inside `apps/mobile`, and run
+`npx expo install --check` when something inexplicable breaks.
+
+Verified: `npx expo export --platform android` bundles 744 modules cleanly.
 
 ---
 
@@ -47,14 +72,18 @@ packages/
   shared/            landmark layout, session types, THE CUE CATALOGUE
   movement-engine/   pure TS. landmarks in, coaching events out. no DOM, no RN.
   exercise-library/  versioned exercise definitions + validation + approval gate
-  pose-source/       PoseSource interface + the Web adapter
+  pose-source/       PoseSource interface, fixture recorder, mock + web adapters
 apps/
   demo-web/          Vite + MediaPipe Web. Runs on any phone browser.
-  mobile/            Expo + React Native (Android native).            [Day 1]
+  mobile/            Expo + React Native. Runs on mock pose today.
   clinician/         Dashboard.                                        [Day 5]
 services/
   api/               FastAPI + Postgres.                               [Day 4]
 ```
+
+`@kine/pose-source` deliberately does **not** re-export the web adapter — it
+pulls in `@mediapipe/tasks-vision`, which Metro cannot bundle. Import it as
+`@kine/pose-source/web`.
 
 ### The seam
 
@@ -141,8 +170,8 @@ catalogue** in French and Arabic; what the app may never say; the safety flow.
 
 | Owner | Work | Gate |
 |---|---|---|
-| AI dev | Record fixtures with the demo app. Calibrate the five definitions against real angles. | Real recordings in `test/fixtures` |
-| Mobile dev | Expo app booting on Android, design system, camera permissions. Not pose yet. | App on a real handset |
+| AI dev | Record fixtures with the demo app. Calibrate the five definitions against real angles. | Real recordings replacing the synthetic ones |
+| Mobile dev | App is scaffolded and bundles. Start on the VisionCamera frame processor. | Native pose emitting Frames |
 | Designer | Type scale, contrast, 64px targets. Home / camera setup / active exercise. | Screens agreed |
 | Kais | Run the workshop. Own the cue catalogue. **Verify getUserMedia in an installed iOS PWA.** | Answers, and the iOS verdict |
 

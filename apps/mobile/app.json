@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Rééducation",
+    "slug": "kine-rehab",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "kinerehab",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "backgroundColor": "#0F172A",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "tn.kine.rehab",
+      "permissions": ["android.permission.CAMERA"],
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "tn.kine.rehab",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "La caméra sert uniquement à suivre vos mouvements pendant l'exercice. Aucune vidéo n'est enregistrée ni envoyée."
+      }
+    },
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

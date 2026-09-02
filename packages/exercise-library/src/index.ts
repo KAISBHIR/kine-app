@@ -1,5 +1,5 @@
 import type { ExerciseDefinition } from '@kine/movement-engine';
-import { validateDefinition } from './validate.js';
+import { validateDefinition } from './validate';
 
 import seatedKneeExtension from '../definitions/seated_knee_extension.json';
 import sitToStand from '../definitions/sit_to_stand.json';
@@ -63,4 +63,4 @@ export function approvalStatus(): { approved: string[]; draft: string[] } {
   };
 }
 
-export { validateDefinition, ExerciseDefinitionError } from './validate.js';
+export { validateDefinition, ExerciseDefinitionError } from './validate';

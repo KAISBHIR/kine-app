@@ -1,4 +1,4 @@
-import type { BodyPart, Side } from './landmarks.js';
+import type { BodyPart, Side } from './landmarks';
 
 /**
  * A single pose landmark in normalised image coordinates.

@@ -1,0 +1,28 @@
+{
+  "name": "@kine/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "prebuild": "expo prebuild --clean"
+  },
+  "dependencies": {
+    "@kine/exercise-library": "*",
+    "@kine/movement-engine": "*",
+    "@kine/pose-source": "*",
+    "@kine/shared": "*",
+    "expo": "~57.0.19",
+    "expo-keep-awake": "~57.0.1",
+    "expo-speech": "~57.0.2",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "15.15.4"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0"
+  }
+}

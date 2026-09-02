@@ -5,15 +5,15 @@ import type {
   SessionSummary,
   Side,
 } from '@kine/shared';
-import { clamp, mean } from './math.js';
-import { PoseSmoother } from './smoothing.js';
-import { SideSelector } from './side.js';
-import { VisibilityGate } from './visibility.js';
-import { computeSignal } from './signal.js';
-import { RepMachine } from './repMachine.js';
-import { FormRuleEvaluator } from './formRules.js';
-import { repDirection, type ExerciseDefinition } from './definition.js';
-import type { OneEuroParams } from './oneEuro.js';
+import { clamp, mean } from './math';
+import { PoseSmoother } from './smoothing';
+import { SideSelector } from './side';
+import { VisibilityGate } from './visibility';
+import { computeSignal } from './signal';
+import { RepMachine } from './repMachine';
+import { FormRuleEvaluator } from './formRules';
+import { repDirection, type ExerciseDefinition } from './definition';
+import type { OneEuroParams } from './oneEuro';
 
 export interface ExerciseSessionOptions {
   smoothing?: OneEuroParams;

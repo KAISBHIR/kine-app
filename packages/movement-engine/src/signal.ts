@@ -5,8 +5,8 @@ import {
   type Frame,
   type Side,
 } from '@kine/shared';
-import { angleDeg, segmentTiltFromVerticalDeg, type Point2 } from './math.js';
-import type { SignalSpec } from './definition.js';
+import { angleDeg, segmentTiltFromVerticalDeg, type Point2 } from './math';
+import type { SignalSpec } from './definition';
 
 export function point(frame: Frame, part: BodyPart, side: Side): Point2 | null {
   const lm = frame.landmarks[landmarkIndex(part, side)];

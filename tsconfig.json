@@ -18,9 +18,12 @@
       "@kine/shared": ["packages/shared/src/index.ts"],
       "@kine/movement-engine": ["packages/movement-engine/src/index.ts"],
       "@kine/exercise-library": ["packages/exercise-library/src/index.ts"],
-      "@kine/pose-source": ["packages/pose-source/src/index.ts"]
+      "@kine/pose-source": ["packages/pose-source/src/index.ts"],
+      "@kine/pose-source/web": ["packages/pose-source/src/web.ts"]
     }
   },
-  "include": ["packages/*/src/**/*", "packages/*/test/**/*", "apps/*/src/**/*"],
-  "exclude": ["node_modules", "**/dist"]
+  "include": ["packages/*/src/**/*", "packages/*/test/**/*", "apps/demo-web/src/**/*"],
+  // apps/mobile is checked by its own tsconfig (`npm run typecheck -w @kine/mobile`)
+  // because it needs Expo's JSX and React Native lib settings.
+  "exclude": ["node_modules", "**/dist", "apps/mobile"]
 }

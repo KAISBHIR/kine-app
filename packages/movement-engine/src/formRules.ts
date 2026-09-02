@@ -5,9 +5,9 @@ import {
   type Landmark,
   type Side,
 } from '@kine/shared';
-import { segmentTiltFromVerticalDeg } from './math.js';
-import { jointAngle, point } from './signal.js';
-import type { FormRuleSpec } from './definition.js';
+import { segmentTiltFromVerticalDeg } from './math';
+import { jointAngle, point } from './signal';
+import type { FormRuleSpec } from './definition';
 
 export interface FormContext {
   frame: Frame;

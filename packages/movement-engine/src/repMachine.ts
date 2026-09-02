@@ -1,5 +1,5 @@
 import type { EnginePhase } from '@kine/shared';
-import { repDirection, type ExerciseDefinition, type RepDirection } from './definition.js';
+import { repDirection, type ExerciseDefinition, type RepDirection } from './definition';
 
 export interface CompletedRep {
   peakDeg: number;

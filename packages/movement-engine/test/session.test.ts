@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ExerciseSession } from '@kine/movement-engine';
+import {
+  ExerciseSession,
+  cleanReps,
+  generateKneeExtensionSequence,
+} from '@kine/movement-engine';
 import { getExercise } from '@kine/exercise-library';
 import type { EngineEvent } from '@kine/shared';
-import { cleanReps, generateKneeExtensionSequence } from './fixtures/synth.js';
 
 const KNEE = getExercise('seated_knee_extension');
 

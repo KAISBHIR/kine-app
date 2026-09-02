@@ -1,6 +1,6 @@
 import { landmarkIndex, type BodyPart, type Frame, type Side } from '@kine/shared';
-import { mean } from './math.js';
-import type { SideSpec } from './definition.js';
+import { mean } from './math';
+import type { SideSpec } from './definition';
 
 /**
  * Picks which side of the body to track.
