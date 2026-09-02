@@ -37,17 +37,22 @@
       </label>
 
       <button id="btn-start" class="primary">Commencer</button>
+      <button id="btn-calibrate" class="ghost wide">Calibrer cet exercice</button>
       <p id="start-error" class="error" hidden></p>
     </section>
 
-    <!-- Camera + session screen -->
+    <!-- Camera screen: used for both a session and a calibration run -->
     <section id="screen-session" class="screen" hidden>
       <div class="stage">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
 
         <div id="hud" class="hud">
-          <div id="rep-counter" class="counter"><span id="rep-done">0</span><span class="slash">/</span><span id="rep-target">10</span></div>
+          <div id="rep-counter" class="counter">
+            <span id="rep-done">0</span>
+            <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
+            <span id="counter-unit" class="slash" hidden>°</span>
+          </div>
           <div id="status" class="status">Préparation…</div>
         </div>
 
@@ -63,7 +68,7 @@
       </div>
     </section>
 
-    <!-- Summary screen -->
+    <!-- Session summary -->
     <section id="screen-done" class="screen" hidden>
       <h1>Séance terminée</h1>
       <div class="summary">
@@ -77,6 +82,32 @@
       </p>
       <div id="sum-cues" class="cues"></div>
       <button id="btn-again" class="primary">Nouvelle séance</button>
+    </section>
+
+    <!-- Calibration result -->
+    <section id="screen-calibrated" class="screen" hidden>
+      <h1>Calibration</h1>
+
+      <div class="summary">
+        <div class="stat"><b id="cal-rest">—</b><span>angle au repos</span></div>
+        <div class="stat"><b id="cal-peak">—</b><span>angle max atteint</span></div>
+        <div class="stat"><b id="cal-cycles">—</b><span>mouvements détectés</span></div>
+      </div>
+
+      <div id="cal-verdict" class="verdict"></div>
+      <div id="cal-warnings" class="cues"></div>
+
+      <details open>
+        <summary>Définition calibrée</summary>
+        <pre id="cal-json" class="json"></pre>
+      </details>
+
+      <div class="row">
+        <button id="btn-cal-copy" class="ghost wide">Copier</button>
+        <button id="btn-cal-download" class="ghost wide">Télécharger</button>
+      </div>
+      <button id="btn-cal-again" class="primary">Retour</button>
+      <p id="cal-error" class="error" hidden></p>
     </section>
 
     <script type="module" src="/src/main.ts"></script>

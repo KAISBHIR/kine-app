@@ -120,6 +120,7 @@ failure back.
 | Hysteresis rep machine | Double-counting at the threshold |
 | Accumulated hold time | Dropping a rep held right at the threshold |
 | Debounced form rules | Nagging the patient until they quit |
+| Calibration | Thresholds that fit nobody's actual body |
 
 Tests live in `packages/*/test`. They run against **synthetic** landmark
 sequences with known ground truth, which is what lets us assert "this is exactly
@@ -157,38 +158,74 @@ build if an unreviewed cue could reach a patient.
 **4. Draft exercises never reach a patient.**
 Every definition carries `clinical.status`. Patient code paths call
 `getApprovedExercise()`, which throws on `draft`. All five currently ship as
-draft — **their thresholds are numbers an engineer guessed**, and they need a
-clinician plus real recordings before they mean anything.
+draft, and **nothing in this repo can promote them.** Calibration fits the
+numbers to a real body, which makes the rep counting correct — it says nothing
+about whether the exercise is right for the person doing it. Only a
+physiotherapist flips that flag.
+
+Until one has, this is a prototype. Demo it, build on it, show it to people —
+just don't hand it to a patient as a rehabilitation programme.
 
 ---
 
-## Day 1
+## Calibration — how the guessed numbers get fixed
 
-**Workshop first, 2 hours, clinicians in the room.** Output documents:
-product name; first condition (knee); **the five exercises**; **the cue
-catalogue** in French and Arabic; what the app may never say; the safety flow.
+Every threshold in an exercise definition describes a specific body doing a
+specific movement in front of a specific camera. Shipped defaults are guesses,
+and a guessed threshold produces a rep counter that is confidently wrong: a knee
+that only extends to 140° never reaches a threshold set at 150°, so the app
+counts zero and tells the patient they did nothing.
 
-| Owner | Work | Gate |
-|---|---|---|
-| AI dev | Record fixtures with the demo app. Calibrate the five definitions against real angles. | Real recordings replacing the synthetic ones |
-| Mobile dev | App is scaffolded and bundles. Start on the VisionCamera frame processor. | Native pose emitting Frames |
-| Designer | Type scale, contrast, 64px targets. Home / camera setup / active exercise. | Screens agreed |
-| Kais | Run the workshop. Own the cue catalogue. **Verify getUserMedia in an installed iOS PWA.** | Answers, and the iOS verdict |
+In the web app: pick an exercise → **Calibrer cet exercice** → do 5–8 reps at
+your natural pace → **Terminer**.
 
-End of day: live skeleton overlay in a phone browser. That already works — the
-real Day 1 deliverable is replacing guessed thresholds with measured ones.
+You get the resting angle, the range you actually achieved, the movements
+detected, and a complete definition JSON to paste over the file in
+`packages/exercise-library/definitions/`.
+
+**Read the verdict line before using the numbers.** It re-runs the real engine
+over the same recording with the suggested thresholds and checks it counts the
+movements that are actually in the recording. If it disagrees, the recording is
+too short, too dark, or of the wrong movement — record again rather than
+shipping the numbers.
+
+Calibration fits numbers to observed movement. It does not know whether the
+movement was correct, safe, or appropriate. It never promotes a definition out
+of `draft`.
+
+---
+
+## Working order
+
+1. **Calibrate all five exercises against your own body.** This is the highest
+   value hour available, and it removes every invented number in the repo.
+2. **Break it on purpose.** Bad lighting, patterned sofa, loose trousers, phone
+   too low, someone walking through frame. Record fixtures for each failure
+   (● Enregistrer) and add them to the test suite. This is what stops a fix for
+   one room breaking another.
+3. **Get one physiotherapist to spend an hour on the cue catalogue and the
+   exercise list.** Not a hire, not a co-founder — an hour. It is the single
+   highest-leverage outside input this project can get, and nothing in the code
+   substitutes for it.
+4. Then, in whatever order serves the goal: multi-exercise sessions, session
+   persistence, the native camera path.
+
+Verify `getUserMedia` inside an installed iOS PWA early — it decides whether
+iPhone users get a home-screen app or a Safari link, and it is the one platform
+assumption in the whole design that has not been tested.
 
 ---
 
 ## Known risks
 
-1. **Native frame processor slips.** Mitigated by design: the web track carries
-   the demo.
-2. **2D form detection is error-prone.** Ship few rules, heavily debounced,
+1. **2D form detection is error-prone.** Ship few rules, heavily debounced,
    biased toward silence. A missed cue costs nothing; a wrong cue costs trust.
-3. **iOS standalone-PWA camera access.** Verify Day 1. Fallback is a Safari link.
-4. **`heel_raises` may not be viable.** Ankle angle from foot landmarks is noisy
+2. **iOS standalone-PWA camera access.** Unverified. Fallback is a Safari link.
+3. **`heel_raises` may not be viable.** Ankle angle from foot landmarks is noisy
    and shoes change it. Drop the exercise rather than ship a bad rep count.
-5. **MediaPipe Web visibility values.** The web build has been inconsistent about
-   populating them; `WebPoseSource` falls back to an in-frame heuristic and logs
-   which path is active. Check the debug panel on Day 1.
+4. **MediaPipe Web visibility values.** The web build has been inconsistent
+   about populating them; `WebPoseSource` falls back to an in-frame heuristic
+   and logs which path is active. Check the debug panel.
+5. **The native camera path is unbuilt.** The Expo app runs on a mock. Until a
+   VisionCamera frame processor exists, the browser is the only place real pose
+   tracking happens — which is fine, because the browser reaches every phone.
