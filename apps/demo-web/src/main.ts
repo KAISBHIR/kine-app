@@ -49,6 +49,7 @@ const els = {
   btnStop: must<HTMLButtonElement>('btn-stop'),
   btnAgain: must<HTMLButtonElement>('btn-again'),
   btnRecord: must<HTMLButtonElement>('btn-record'),
+  btnRecordLabel: must<HTMLElement>('btn-record-label'),
   btnDebug: must<HTMLButtonElement>('btn-debug'),
   startError: must<HTMLElement>('start-error'),
 
@@ -59,6 +60,7 @@ const els = {
   repTarget: must<HTMLElement>('rep-target'),
   counterUnit: must<HTMLElement>('counter-unit'),
   status: must<HTMLElement>('status'),
+  statusText: must<HTMLElement>('status-text'),
   cue: must<HTMLElement>('cue'),
   debug: must<HTMLElement>('debug'),
 
@@ -416,7 +418,7 @@ function trackedLimbIndices(): number[] {
 }
 
 function setStatus(text: string, cls: string): void {
-  els.status.textContent = text;
+  els.statusText.textContent = text;
   els.status.className = `status ${cls}`;
 }
 
@@ -442,10 +444,12 @@ function toggleRecording(): void {
   if (recorder.isRecording) {
     const note = prompt('Note pour cet enregistrement ?') ?? '';
     downloadFixture(recorder.stop(note, navigator.userAgent));
-    els.btnRecord.textContent = '● Enregistrer';
+    els.btnRecord.classList.remove('chip--recording');
+    els.btnRecordLabel.textContent = 'Enregistrer';
   } else {
     recorder.start(def.id);
-    els.btnRecord.textContent = '■ Arrêter';
+    els.btnRecord.classList.add('chip--recording');
+    els.btnRecordLabel.textContent = 'Arrêter';
   }
 }
 

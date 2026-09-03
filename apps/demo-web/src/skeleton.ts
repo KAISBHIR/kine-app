@@ -9,10 +9,10 @@ export interface DrawOptions {
   degraded?: boolean;
 }
 
-const BONE = '#38bdf8';
-const BONE_HI = '#22c55e';
-const JOINT = '#e0f2fe';
-const FADED = '#64748b';
+const BONE = '#6ea8fe';
+const BONE_HI = '#7dfacb';
+const JOINT = '#f5f5f7';
+const FADED = '#5b5b68';
 
 /**
  * Draws the pose over the video.

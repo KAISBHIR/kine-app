@@ -3,65 +3,127 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#07070c" />
     <!-- Day 1 verification: install to the iOS home screen and confirm
          getUserMedia still works in standalone mode. Fallback is a Safari link. -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&family=Manrope:wght@500..800&display=swap"
+      rel="stylesheet"
+    />
     <title>Rééducation à domicile — démo</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
+    <div class="aurora" aria-hidden="true">
+      <span class="aurora__blob aurora__blob--a"></span>
+      <span class="aurora__blob aurora__blob--b"></span>
+      <span class="aurora__blob aurora__blob--c"></span>
+      <span class="aurora__grain"></span>
+    </div>
+
     <div id="draft-banner" class="banner">
-      Définitions d’exercice non validées cliniquement — usage interne
+      <span class="banner__dot"></span>
+      Prototype — définitions non validées cliniquement
     </div>
 
     <!-- Start screen -->
-    <section id="screen-start" class="screen">
-      <h1>Votre séance</h1>
-      <p class="lead">Placez le téléphone sur une table, à environ 2 mètres.</p>
+    <section id="screen-start" class="screen screen--center">
+      <header class="hero">
+        <p class="eyebrow">Rééducation à domicile</p>
+        <h1>Votre séance,<br />quand vous voulez.</h1>
+        <p class="lead">Posez le téléphone sur une table, à environ deux mètres.</p>
+      </header>
 
-      <label class="field">
-        <span>Exercice</span>
-        <select id="exercise-select"></select>
-      </label>
+      <div class="glass form-card">
+        <label class="field">
+          <span class="field__label">Exercice</span>
+          <div class="select-shell">
+            <select id="exercise-select"></select>
+            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
 
-      <label class="field">
-        <span>Répétitions</span>
-        <select id="target-select">
-          <option value="5">5</option>
-          <option value="10" selected>10</option>
-          <option value="15">15</option>
-        </select>
-      </label>
+        <label class="field">
+          <span class="field__label">Répétitions</span>
+          <div class="select-shell">
+            <select id="target-select">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+            </select>
+            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
+      </div>
 
-      <button id="btn-start" class="primary">Commencer</button>
-      <button id="btn-calibrate" class="ghost wide">Calibrer cet exercice</button>
-      <p id="start-error" class="error" hidden></p>
+      <div class="stack">
+        <button id="btn-start" class="btn btn--primary btn--lg">
+          <span>Commencer</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button id="btn-calibrate" class="btn btn--ghost">Calibrer cet exercice</button>
+        <p id="start-error" class="error" hidden></p>
+      </div>
     </section>
 
     <!-- Camera screen: used for both a session and a calibration run -->
-    <section id="screen-session" class="screen" hidden>
+    <section id="screen-session" class="screen screen--full" hidden>
       <div class="stage">
         <video id="video" playsinline muted></video>
         <canvas id="overlay"></canvas>
+        <div class="stage__scrim"></div>
 
         <div id="hud" class="hud">
-          <div id="rep-counter" class="counter">
-            <span id="rep-done">0</span>
-            <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
-            <span id="counter-unit" class="slash" hidden>°</span>
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+              <defs>
+                <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7dfacb" />
+                  <stop offset="100%" stop-color="#6ea8fe" />
+                </linearGradient>
+              </defs>
+              <circle class="ring__track" cx="100" cy="100" r="88" />
+              <circle id="ring-progress" class="ring__progress" cx="100" cy="100" r="88" />
+            </svg>
+            <div id="rep-counter" class="counter">
+              <span id="rep-done">0</span>
+              <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
+              <span id="counter-unit" class="slash" hidden>°</span>
+            </div>
           </div>
-          <div id="status" class="status">Préparation…</div>
+          <div id="status" class="status">
+            <span class="status__dot"></span>
+            <span id="status-text">Préparation…</span>
+          </div>
         </div>
 
         <div id="cue" class="cue" hidden></div>
 
         <div class="controls">
-          <button id="btn-record" class="ghost">● Enregistrer</button>
-          <button id="btn-debug" class="ghost">Détails</button>
-          <button id="btn-stop" class="danger">Terminer</button>
+          <button id="btn-record" class="chip">
+            <span class="chip__rec"></span>
+            <span id="btn-record-label">Enregistrer</span>
+          </button>
+          <button id="btn-debug" class="chip">Détails</button>
+          <button id="btn-stop" class="btn btn--danger">Terminer</button>
         </div>
 
         <pre id="debug" class="debug" hidden></pre>
@@ -69,47 +131,78 @@
     </section>
 
     <!-- Session summary -->
-    <section id="screen-done" class="screen" hidden>
-      <h1>Séance terminée</h1>
-      <div class="summary">
-        <div class="stat"><b id="sum-reps">0</b><span>répétitions</span></div>
-        <div class="stat"><b id="sum-quality">—</b><span>qualité du mouvement</span></div>
-        <div class="stat"><b id="sum-duration">—</b><span>durée</span></div>
+    <section id="screen-done" class="screen screen--center" hidden>
+      <header class="hero hero--tight">
+        <p class="eyebrow eyebrow--success">Séance terminée</p>
+        <h1>Belle séance.</h1>
+      </header>
+
+      <div class="bento">
+        <div class="glass stat stat--wide">
+          <b id="sum-reps">0</b>
+          <span>répétitions</span>
+        </div>
+        <div class="glass stat">
+          <b id="sum-quality">—</b>
+          <span>qualité</span>
+        </div>
+        <div class="glass stat">
+          <b id="sum-duration">—</b>
+          <span>durée</span>
+        </div>
       </div>
-      <p class="estimate">
-        Amplitude estimée&nbsp;: <b id="sum-rom">—</b><br />
-        <small>Valeur indicative issue de la caméra, ce n’est pas une mesure clinique.</small>
-      </p>
+
+      <div class="glass estimate">
+        <div class="estimate__row">
+          <span>Amplitude estimée</span>
+          <b id="sum-rom">—</b>
+        </div>
+        <small>Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.</small>
+      </div>
+
       <div id="sum-cues" class="cues"></div>
-      <button id="btn-again" class="primary">Nouvelle séance</button>
+      <button id="btn-again" class="btn btn--primary btn--lg">Nouvelle séance</button>
     </section>
 
     <!-- Calibration result -->
-    <section id="screen-calibrated" class="screen" hidden>
-      <h1>Calibration</h1>
+    <section id="screen-calibrated" class="screen screen--center" hidden>
+      <header class="hero hero--tight">
+        <p class="eyebrow">Calibration</p>
+        <h1>Ajusté à vous.</h1>
+      </header>
 
-      <div class="summary">
-        <div class="stat"><b id="cal-rest">—</b><span>angle au repos</span></div>
-        <div class="stat"><b id="cal-peak">—</b><span>angle max atteint</span></div>
-        <div class="stat"><b id="cal-cycles">—</b><span>mouvements détectés</span></div>
+      <div class="bento">
+        <div class="glass stat">
+          <b id="cal-rest">—</b>
+          <span>angle au repos</span>
+        </div>
+        <div class="glass stat">
+          <b id="cal-peak">—</b>
+          <span>angle max</span>
+        </div>
+        <div class="glass stat">
+          <b id="cal-cycles">—</b>
+          <span>mouvements</span>
+        </div>
       </div>
 
       <div id="cal-verdict" class="verdict"></div>
       <div id="cal-warnings" class="cues"></div>
 
-      <details open>
+      <details class="glass details" open>
         <summary>Définition calibrée</summary>
         <pre id="cal-json" class="json"></pre>
       </details>
 
       <div class="row">
-        <button id="btn-cal-copy" class="ghost wide">Copier</button>
-        <button id="btn-cal-download" class="ghost wide">Télécharger</button>
+        <button id="btn-cal-copy" class="btn btn--ghost">Copier</button>
+        <button id="btn-cal-download" class="btn btn--ghost">Télécharger</button>
       </div>
-      <button id="btn-cal-again" class="primary">Retour</button>
+      <button id="btn-cal-again" class="btn btn--primary btn--lg">Retour</button>
       <p id="cal-error" class="error" hidden></p>
     </section>
 
     <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/ring.ts"></script>
   </body>
 </html>
