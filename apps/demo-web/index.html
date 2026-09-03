@@ -9,15 +9,8 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com"
-    />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&family=Manrope:wght@500..800&display=swap"
       rel="stylesheet"
@@ -38,8 +31,127 @@
       Prototype — définitions non validées cliniquement
     </div>
 
-    <!-- Start screen -->
-    <section id="screen-start" class="screen screen--center">
+    <!-- Step 1: language -->
+    <section id="screen-language" class="screen screen--center">
+      <header class="hero">
+        <p class="eyebrow" data-i18n="lang.prompt">Choisissez votre langue</p>
+        <h1>Bienvenue</h1>
+      </header>
+      <div class="stack">
+        <button class="btn btn--ghost btn--lg lang-btn" data-lang="fr">Français</button>
+        <button class="btn btn--ghost btn--lg lang-btn" data-lang="ar">العربية</button>
+        <button class="btn btn--ghost btn--lg lang-btn" data-lang="en">English</button>
+      </div>
+    </section>
+
+    <!-- Step 2: profile -->
+    <section id="screen-profile" class="screen screen--center" hidden>
+      <header class="hero hero--tight">
+        <p class="eyebrow" data-i18n="profile.title">Faisons connaissance</p>
+        <h1 data-i18n="profile.lead">Quelques informations avant de commencer.</h1>
+      </header>
+
+      <div class="glass form-card">
+        <label class="field">
+          <span class="field__label" data-i18n="profile.name">Votre prénom</span>
+          <input
+            id="profile-name"
+            class="text-input"
+            type="text"
+            data-i18n-placeholder="profile.namePlaceholder"
+            autocomplete="given-name"
+          />
+        </label>
+
+        <label class="field">
+          <span class="field__label" data-i18n="profile.age">Âge</span>
+          <input id="profile-age" class="text-input" type="number" min="1" max="120" inputmode="numeric" />
+        </label>
+
+        <label class="field">
+          <span class="field__label" data-i18n="profile.area">Zone de rééducation</span>
+          <div class="select-shell">
+            <select id="profile-area">
+              <option value="knee" data-i18n="area.knee">Genou</option>
+              <option value="hip" data-i18n="area.hip">Hanche</option>
+              <option value="ankle" data-i18n="area.ankle">Cheville</option>
+              <option value="back" data-i18n="area.back">Dos</option>
+              <option value="shoulder" data-i18n="area.shoulder">Épaule</option>
+              <option value="other" data-i18n="area.other">Autre</option>
+            </select>
+            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
+
+        <label class="field">
+          <span class="field__label" data-i18n="profile.prescriber">Qui a prescrit ce programme ?</span>
+          <div class="select-shell">
+            <select id="profile-prescriber">
+              <option value="physio" data-i18n="prescriber.physio">Kinésithérapeute</option>
+              <option value="doctor" data-i18n="prescriber.doctor">Médecin</option>
+              <option value="center" data-i18n="prescriber.center">Centre de rééducation</option>
+              <option value="other" data-i18n="prescriber.other">Autre</option>
+            </select>
+            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </label>
+      </div>
+
+      <button id="btn-profile-continue" class="btn btn--primary btn--lg">
+        <span data-i18n="profile.continue">Continuer</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
+          <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- Step 3: home dashboard -->
+    <section id="screen-home" class="screen screen--center" hidden>
+      <header class="hero">
+        <p class="eyebrow" id="home-greeting">Bonjour</p>
+        <h1 data-i18n="home.ready">Votre séance est prête</h1>
+      </header>
+
+      <div class="glass form-card home-card">
+        <div class="home-card__row">
+          <span id="home-exercise-name" class="home-card__title">—</span>
+          <span id="home-session-info" class="home-card__meta">—</span>
+        </div>
+
+        <label class="consent">
+          <input id="video-consent" type="checkbox" />
+          <span class="consent__box" aria-hidden="true"></span>
+          <span class="consent__text">
+            <span data-i18n="home.videoConsent">Enregistrer une vidéo pour mon kiné</span>
+            <small data-i18n="home.videoConsentHint">
+              Optionnel. Sans cette option, seul le squelette (aucune image de vous) est
+              conservé.
+            </small>
+          </span>
+        </label>
+      </div>
+
+      <button id="btn-home-start" class="btn btn--primary btn--lg">
+        <span data-i18n="home.start">Commencer la séance</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
+          <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+
+      <div class="link-row">
+        <button id="btn-home-advanced" class="link-btn" data-i18n="home.advanced">Options avancées</button>
+        <button id="btn-home-edit-profile" class="link-btn" data-i18n="home.editProfile">Modifier le profil</button>
+      </div>
+    </section>
+
+    <!-- Advanced / manual picker + calibration entry point -->
+    <section id="screen-start" class="screen screen--center" hidden>
+      <button id="btn-start-back" class="link-btn back-link" data-i18n="nav.back">← Retour</button>
+
       <header class="hero">
         <p class="eyebrow">Rééducation à domicile</p>
         <h1>Votre séance,<br />quand vous voulez.</h1>
@@ -161,6 +273,38 @@
       </div>
 
       <div id="sum-cues" class="cues"></div>
+
+      <!-- Skeleton replay: always available, no image of the patient ever exists. -->
+      <div id="replay-card" class="glass replay-card" hidden>
+        <div class="replay-card__head">
+          <span data-i18n="replay.title">Revoir la séance</span>
+          <button id="btn-replay-toggle" class="chip chip--inline">
+            <span id="btn-replay-label" data-i18n="replay.play">Lecture</span>
+          </button>
+        </div>
+        <canvas id="replay-canvas" class="replay-canvas" width="360" height="360"></canvas>
+        <small data-i18n="replay.hint">
+          Rejoue le squelette enregistré — aucune image de vous n’est stockée.
+        </small>
+      </div>
+
+      <!-- Real video: only rendered when the patient opted in before the session. -->
+      <div id="video-card" class="glass replay-card" hidden>
+        <div class="replay-card__head">
+          <span data-i18n="video.title">Vidéo de la séance</span>
+        </div>
+        <video id="video-playback" class="video-playback" controls playsinline></video>
+        <small data-i18n="video.hint">Enregistrée avec votre accord, pour votre kinésithérapeute.</small>
+        <div class="row">
+          <button id="btn-video-share" class="btn btn--ghost">
+            <span data-i18n="video.share">Partager avec mon kiné</span>
+          </button>
+          <button id="btn-video-download" class="btn btn--ghost">
+            <span data-i18n="video.download">Télécharger</span>
+          </button>
+        </div>
+      </div>
+
       <button id="btn-again" class="btn btn--primary btn--lg">Nouvelle séance</button>
     </section>
 

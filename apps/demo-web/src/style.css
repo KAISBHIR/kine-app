@@ -828,6 +828,239 @@ select:focus-visible {
   font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* --- text inputs ------------------------------------------------------- */
+
+.text-input {
+  width: 100%;
+  min-height: 60px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s var(--ease);
+}
+
+.text-input::placeholder {
+  color: var(--muted-dim);
+  font-weight: 500;
+}
+
+.text-input:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.text-input:focus-visible {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
+}
+
+/* --- language screen ----------------------------------------------------*/
+
+.lang-btn {
+  justify-content: flex-start;
+  padding-left: 24px;
+  font-size: 20px;
+}
+
+/* --- custom checkbox (consent) -------------------------------------------*/
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  padding-top: 4px;
+}
+
+.consent input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.consent__box {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-strong);
+  display: grid;
+  place-items: center;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.consent__box::after {
+  content: "";
+  width: 7px;
+  height: 12px;
+  border-right: 2.5px solid var(--accent-text);
+  border-bottom: 2.5px solid var(--accent-text);
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.16s var(--ease-spring);
+  margin-top: -2px;
+}
+
+.consent input:checked ~ .consent__box {
+  background: var(--accent-grad);
+  border-color: transparent;
+}
+
+.consent input:checked ~ .consent__box::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.consent input:focus-visible ~ .consent__box {
+  outline: 2px solid var(--accent-a);
+  outline-offset: 2px;
+}
+
+.consent__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.consent__text small {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--muted-dim);
+  line-height: 1.5;
+}
+
+/* --- home dashboard -------------------------------------------------------*/
+
+.home-card {
+  gap: 20px;
+}
+
+.home-card__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-card__title {
+  font-family: "Manrope", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.home-card__meta {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  min-height: 44px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color 0.18s var(--ease), text-decoration-color 0.18s var(--ease);
+}
+
+.link-btn:hover {
+  color: var(--text);
+  text-decoration-color: var(--border-strong);
+}
+
+.back-link {
+  align-self: flex-start;
+  margin: -8px 0 -8px;
+}
+
+/* --- replay + video cards ------------------------------------------------*/
+
+.replay-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.replay-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chip--inline {
+  min-height: 38px;
+  padding: 0 14px;
+  background: var(--surface-strong);
+}
+
+.replay-canvas {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: #020204;
+  border: 1px solid var(--border);
+}
+
+.video-playback {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  background: #000;
+  border: 1px solid var(--border);
+}
+
+.replay-card small {
+  color: var(--muted-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* --- RTL ------------------------------------------------------------------
+ * Most of the session HUD uses symmetric left/right offsets and needs no
+ * change. The two things that visibly read wrong mirrored are directional
+ * arrow icons and the profile-form left alignment of long labels — handled
+ * here rather than duplicating the whole stylesheet.
+ */
+
+[dir="rtl"] .btn__icon {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .lang-btn {
+  justify-content: flex-end;
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+[dir="rtl"] .back-link {
+  align-self: flex-end;
+}
+
 /* --- small screens --------------------------------------------------------*/
 
 @media (max-width: 380px) {

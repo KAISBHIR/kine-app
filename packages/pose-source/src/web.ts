@@ -43,6 +43,16 @@ export class WebPoseSource extends BasePoseSource {
     return this.visibilityReported;
   }
 
+  /**
+   * The raw camera stream, exposed so a caller can record real video
+   * alongside pose tracking (with the patient's explicit consent — see the
+   * privacy architecture in the README). Returns null before start() or
+   * after stop().
+   */
+  get mediaStream(): MediaStream | null {
+    return this.stream;
+  }
+
   async start(): Promise<void> {
     if (this.running) return;
 

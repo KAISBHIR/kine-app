@@ -22,8 +22,21 @@ import { WebPoseSource } from '@kine/pose-source/web';
 import { drawSkeleton, fitOverlay } from './skeleton';
 import { WebSpeechVoice } from './voice';
 import { downloadFixture } from './recorder';
-
-const LOCALE: Locale = 'fr';
+import { applyI18n, getLocale, loadStoredLocale, setLocale, t } from './i18n';
+import {
+  exerciseForArea,
+  loadProfile,
+  saveProfile,
+  type PatientProfile,
+  type Prescriber,
+  type RehabArea,
+} from './profile';
+import { SkeletonReplay } from './replay';
+import {
+  SessionVideoRecorder,
+  shareOrDownloadVideo,
+  videoFileExtension,
+} from './videoRecorder';
 
 /** Continuous time the whole body must be visible before the session starts. */
 const SETUP_STABLE_MS = 1200;
@@ -37,10 +50,28 @@ function must<T extends Element>(id: string): T {
 }
 
 const els = {
+  screenLanguage: must<HTMLElement>('screen-language'),
+  screenProfile: must<HTMLElement>('screen-profile'),
+  screenHome: must<HTMLElement>('screen-home'),
   screenStart: must<HTMLElement>('screen-start'),
   screenSession: must<HTMLElement>('screen-session'),
   screenDone: must<HTMLElement>('screen-done'),
   screenCalibrated: must<HTMLElement>('screen-calibrated'),
+
+  profileName: must<HTMLInputElement>('profile-name'),
+  profileAge: must<HTMLInputElement>('profile-age'),
+  profileArea: must<HTMLSelectElement>('profile-area'),
+  profilePrescriber: must<HTMLSelectElement>('profile-prescriber'),
+  btnProfileContinue: must<HTMLButtonElement>('btn-profile-continue'),
+
+  homeGreeting: must<HTMLElement>('home-greeting'),
+  homeExerciseName: must<HTMLElement>('home-exercise-name'),
+  homeSessionInfo: must<HTMLElement>('home-session-info'),
+  videoConsent: must<HTMLInputElement>('video-consent'),
+  btnHomeStart: must<HTMLButtonElement>('btn-home-start'),
+  btnHomeAdvanced: must<HTMLButtonElement>('btn-home-advanced'),
+  btnHomeEditProfile: must<HTMLButtonElement>('btn-home-edit-profile'),
+  btnStartBack: must<HTMLButtonElement>('btn-start-back'),
 
   exerciseSelect: must<HTMLSelectElement>('exercise-select'),
   targetSelect: must<HTMLSelectElement>('target-select'),
@@ -70,6 +101,16 @@ const els = {
   sumRom: must<HTMLElement>('sum-rom'),
   sumCues: must<HTMLElement>('sum-cues'),
 
+  replayCard: must<HTMLElement>('replay-card'),
+  btnReplayToggle: must<HTMLButtonElement>('btn-replay-toggle'),
+  btnReplayLabel: must<HTMLElement>('btn-replay-label'),
+  replayCanvas: must<HTMLCanvasElement>('replay-canvas'),
+
+  videoCard: must<HTMLElement>('video-card'),
+  videoPlayback: must<HTMLVideoElement>('video-playback'),
+  btnVideoShare: must<HTMLButtonElement>('btn-video-share'),
+  btnVideoDownload: must<HTMLButtonElement>('btn-video-download'),
+
   calRest: must<HTMLElement>('cal-rest'),
   calPeak: must<HTMLElement>('cal-peak'),
   calCycles: must<HTMLElement>('cal-cycles'),
@@ -83,13 +124,23 @@ const els = {
 };
 
 const ctx = els.overlay.getContext('2d')!;
-const voice = new WebSpeechVoice(LOCALE);
 const recorder = new LandmarkRecorder();
+const videoRecorder = new SessionVideoRecorder();
 
-type Stage = 'idle' | 'setup' | 'active' | 'done' | 'calibrated';
+let voice = new WebSpeechVoice(getLocale());
+
+type Stage =
+  | 'language'
+  | 'profile'
+  | 'home'
+  | 'idle'
+  | 'setup'
+  | 'active'
+  | 'done'
+  | 'calibrated';
 type Mode = 'session' | 'calibrate';
 
-let stage: Stage = 'idle';
+let stage: Stage = 'language';
 let mode: Mode = 'session';
 let source: WebPoseSource | null = null;
 let session: ExerciseSession | null = null;
@@ -105,6 +156,18 @@ let trackingOk = true;
 let calFrames: Frame[] = [];
 let calibratedJson = '';
 
+/**
+ * Landmarks captured during an actual session, from the moment coaching
+ * begins. This is what feeds the skeleton replay on the summary screen — the
+ * default, privacy-preserving way a clinician can review what happened.
+ */
+let sessionFrames: Frame[] = [];
+let replay: SkeletonReplay | null = null;
+
+/** Set at the start of a session from the consent checkbox on Home. */
+let wantsVideo = false;
+let lastVideoBlob: Blob | null = null;
+
 // FPS is measured rather than assumed: it is the first number to look at when
 // rep detection misbehaves on a particular phone.
 let fpsWindow: number[] = [];
@@ -113,18 +176,107 @@ let debugVisible = false;
 
 // --- boot ----------------------------------------------------------------
 
-for (const d of listExercises()) {
-  const opt = document.createElement('option');
-  opt.value = d.id;
-  opt.textContent = exerciseName(d.nameKey, LOCALE);
-  els.exerciseSelect.append(opt);
+function populateExerciseOptions(): void {
+  els.exerciseSelect.innerHTML = '';
+  for (const d of listExercises()) {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = exerciseName(d.nameKey, getLocale());
+    els.exerciseSelect.append(opt);
+  }
+  els.exerciseSelect.value = def.id;
 }
-els.exerciseSelect.value = def.id;
+
+function boot(): void {
+  const stored = loadStoredLocale();
+  if (!stored) {
+    showScreen('language');
+    return;
+  }
+
+  setLocale(stored);
+  applyI18n();
+  populateExerciseOptions();
+  voice = new WebSpeechVoice(getLocale());
+
+  const profile = loadProfile();
+  if (profile) {
+    goHome(profile);
+  } else {
+    showScreen('profile');
+  }
+}
+
+function goHome(profile?: PatientProfile): void {
+  const p = profile ?? loadProfile();
+  if (p) renderHome(p);
+  showScreen('home');
+}
+
+function renderHome(profile: PatientProfile): void {
+  els.homeGreeting.textContent = t('home.greeting', { name: profile.name });
+
+  const exerciseId = exerciseForArea(profile.area);
+  const exerciseDef = getExercise(exerciseId);
+  els.exerciseSelect.value = exerciseId;
+
+  els.homeExerciseName.textContent = exerciseName(exerciseDef.nameKey, getLocale());
+  const minutes = Math.max(1, Math.round((targetReps * 5) / 60));
+  els.homeSessionInfo.textContent = t('home.sessionInfo', { count: 1, minutes });
+}
+
+for (const btn of document.querySelectorAll<HTMLButtonElement>('.lang-btn')) {
+  btn.addEventListener('click', () => {
+    const locale = btn.dataset.lang as Locale;
+    setLocale(locale);
+    applyI18n();
+    populateExerciseOptions();
+    voice = new WebSpeechVoice(getLocale());
+
+    const profile = loadProfile();
+    if (profile) {
+      goHome(profile);
+    } else {
+      showScreen('profile');
+    }
+  });
+}
+
+els.btnProfileContinue.addEventListener('click', () => {
+  const name = els.profileName.value.trim();
+  if (!name) {
+    els.profileName.focus();
+    return;
+  }
+
+  const profile: PatientProfile = {
+    name,
+    age: els.profileAge.value ? Number(els.profileAge.value) : null,
+    area: els.profileArea.value as RehabArea,
+    prescriber: els.profilePrescriber.value as Prescriber,
+  };
+  saveProfile(profile);
+  goHome(profile);
+});
+
+els.btnHomeStart.addEventListener('click', () => void begin('session'));
+els.btnHomeAdvanced.addEventListener('click', () => showScreen('idle'));
+els.btnHomeEditProfile.addEventListener('click', () => {
+  const p = loadProfile();
+  if (p) {
+    els.profileName.value = p.name;
+    els.profileAge.value = p.age ? String(p.age) : '';
+    els.profileArea.value = p.area;
+    els.profilePrescriber.value = p.prescriber;
+  }
+  showScreen('profile');
+});
+els.btnStartBack.addEventListener('click', () => goHome());
 
 els.btnStart.addEventListener('click', () => void begin('session'));
 els.btnCalibrate.addEventListener('click', () => void begin('calibrate'));
 els.btnStop.addEventListener('click', () => finish());
-els.btnAgain.addEventListener('click', () => showScreen('idle'));
+els.btnAgain.addEventListener('click', () => goHome());
 els.btnCalAgain.addEventListener('click', () => showScreen('idle'));
 els.btnDebug.addEventListener('click', () => {
   debugVisible = !debugVisible;
@@ -133,7 +285,12 @@ els.btnDebug.addEventListener('click', () => {
 els.btnRecord.addEventListener('click', () => toggleRecording());
 els.btnCalCopy.addEventListener('click', () => void copyCalibration());
 els.btnCalDownload.addEventListener('click', () => downloadCalibration());
+els.btnReplayToggle.addEventListener('click', () => toggleReplay());
+els.btnVideoShare.addEventListener('click', () => void shareVideo());
+els.btnVideoDownload.addEventListener('click', () => downloadVideo());
 window.addEventListener('resize', () => fitOverlay(els.video, els.overlay));
+
+boot();
 
 // --- lifecycle -----------------------------------------------------------
 
@@ -145,6 +302,9 @@ async function begin(nextMode: Mode): Promise<void> {
 
   session = nextMode === 'session' ? new ExerciseSession(def) : null;
   calFrames = [];
+  sessionFrames = [];
+  wantsVideo = nextMode === 'session' && els.videoConsent.checked;
+  lastVideoBlob = null;
   setupGoodSince = null;
   lastPartialCueAt = -Infinity;
   trackingOk = true;
@@ -167,6 +327,11 @@ async function begin(nextMode: Mode): Promise<void> {
     await source.start();
     fitOverlay(els.video, els.overlay);
     speak('cue.setup_distance');
+
+    if (wantsVideo) {
+      const stream = source.mediaStream;
+      wantsVideo = stream !== null && videoRecorder.start(stream);
+    }
   } catch (e) {
     source = null;
     showScreen('idle');
@@ -193,6 +358,7 @@ function onFrame(frame: Frame): void {
       const angle = computeSignal(frame, def.signal, session?.side ?? 'left');
       els.repDone.textContent = angle === null ? '—' : String(Math.round(angle));
     } else if (session) {
+      sessionFrames.push(frame);
       for (const ev of session.push(frame)) handleEvent(ev);
     }
   }
@@ -230,7 +396,7 @@ function handleEvent(ev: EngineEvent): void {
   switch (ev.kind) {
     case 'rep': {
       els.repDone.textContent = String(ev.index);
-      if (ev.index <= 15) voice.say(countWord(ev.index, LOCALE), 'count');
+      if (ev.index <= 15) voice.say(countWord(ev.index, getLocale()), 'count');
       if (ev.index >= targetReps) finish();
       break;
     }
@@ -268,7 +434,12 @@ function finish(): void {
   if (stage === 'done' || stage === 'calibrated') return;
 
   const captured = calFrames;
+  const replayFrames = sessionFrames;
   const summary = session?.summary() ?? null;
+
+  // MediaRecorder.stop() must run BEFORE the camera tracks are stopped below,
+  // or the last buffered chunk of video can be lost.
+  const videoPromise = wantsVideo ? videoRecorder.stop() : Promise.resolve(null);
 
   source?.stop();
   source = null;
@@ -296,6 +467,71 @@ function finish(): void {
 
   showScreen('done');
   speak('cue.session_complete');
+  setupReplay(replayFrames);
+
+  if (wantsVideo) {
+    videoPromise.then((blob) => {
+      if (blob) showVideoCard(blob);
+    });
+  }
+}
+
+// --- skeleton replay -------------------------------------------------------
+
+function setupReplay(frames: Frame[]): void {
+  replay?.destroy();
+  replay = null;
+
+  if (frames.length < 2) {
+    els.replayCard.hidden = true;
+    return;
+  }
+
+  els.replayCard.hidden = false;
+  const replayCtx = els.replayCanvas.getContext('2d')!;
+  replay = new SkeletonReplay(replayCtx, frames);
+  replay.play();
+  els.btnReplayLabel.textContent = t('replay.pause');
+}
+
+function toggleReplay(): void {
+  if (!replay) return;
+  if (replay.playing) {
+    replay.pause();
+    els.btnReplayLabel.textContent = t('replay.play');
+  } else {
+    replay.play();
+    els.btnReplayLabel.textContent = t('replay.pause');
+  }
+}
+
+// --- consented video ---------------------------------------------------
+
+function showVideoCard(blob: Blob): void {
+  lastVideoBlob = blob;
+  const url = URL.createObjectURL(blob);
+  els.videoPlayback.src = url;
+  els.videoCard.hidden = false;
+}
+
+function videoFilename(): string {
+  const ext = lastVideoBlob ? videoFileExtension(lastVideoBlob.type) : 'webm';
+  return `seance-${def.id}.${ext}`;
+}
+
+async function shareVideo(): Promise<void> {
+  if (!lastVideoBlob) return;
+  await shareOrDownloadVideo(lastVideoBlob, videoFilename());
+}
+
+function downloadVideo(): void {
+  if (!lastVideoBlob) return;
+  const url = URL.createObjectURL(lastVideoBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = videoFilename();
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // --- calibration ---------------------------------------------------------
@@ -390,16 +626,34 @@ function downloadCalibration(): void {
 
 function showScreen(next: Stage): void {
   stage = next;
+  els.screenLanguage.hidden = next !== 'language';
+  els.screenProfile.hidden = next !== 'profile';
+  els.screenHome.hidden = next !== 'home';
   els.screenStart.hidden = next !== 'idle';
   els.screenSession.hidden = next !== 'setup' && next !== 'active';
   els.screenDone.hidden = next !== 'done';
   els.screenCalibrated.hidden = next !== 'calibrated';
 
-  if (next === 'idle') {
+  if (next !== 'done') {
+    replay?.destroy();
+    replay = null;
+    els.replayCard.hidden = true;
+
+    if (els.videoPlayback.src) {
+      URL.revokeObjectURL(els.videoPlayback.src);
+      els.videoPlayback.removeAttribute('src');
+    }
+    els.videoCard.hidden = true;
+    lastVideoBlob = null;
+  }
+
+  if (next === 'language' || next === 'profile' || next === 'home' || next === 'idle') {
     source?.stop();
     source = null;
     session = null;
     calFrames = [];
+    sessionFrames = [];
+    videoRecorder.discard();
   }
 }
 
@@ -423,11 +677,11 @@ function setStatus(text: string, cls: string): void {
 }
 
 function speak(cueKey: string): void {
-  voice.say(say(cueKey, LOCALE), 'cue');
+  voice.say(say(cueKey, getLocale()), 'cue');
 }
 
 function showCue(cueKey: string): void {
-  const text = say(cueKey, LOCALE);
+  const text = say(cueKey, getLocale());
   els.cue.textContent = text;
   els.cue.hidden = false;
   voice.say(text, 'cue');
@@ -480,6 +734,7 @@ function renderDebug(frame: Frame): void {
     `suivi      ${trackingOk ? 'ok' : 'perdu'}`,
     `visibility ${source?.modelReportsVisibility ? 'modèle' : 'heuristique'}`,
     `fps        ${fps.toFixed(1)}`,
+    `vidéo      ${wantsVideo ? 'oui' : 'non'}`,
     `calib      ${mode === 'calibrate' ? calFrames.length + ' frames' : '—'}`,
   ].join('\n');
 }
