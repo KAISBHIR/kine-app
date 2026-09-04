@@ -63,6 +63,19 @@ body {
   overflow-x: hidden;
 }
 
+/*
+ * The bug that made every screen render stacked into one long page: author
+ * CSS always wins over the browser's built-in `[hidden] { display: none }`
+ * rule, regardless of specificity — origin beats specificity in the cascade.
+ * `.screen--center { display: flex }` was therefore overriding `hidden` on
+ * every screen except the one using `.screen--full`. This one rule, at
+ * highest priority, is what actually makes `element.hidden = true` hide
+ * the element no matter what other display value a class sets.
+ */
+[hidden] {
+  display: none !important;
+}
+
 ::selection {
   background: rgba(125, 250, 203, 0.25);
 }
