@@ -63,6 +63,7 @@ const els = {
   profileArea: must<HTMLSelectElement>('profile-area'),
   profilePrescriber: must<HTMLSelectElement>('profile-prescriber'),
   btnProfileContinue: must<HTMLButtonElement>('btn-profile-continue'),
+  btnProfileBack: must<HTMLButtonElement>('btn-profile-back'),
 
   homeGreeting: must<HTMLElement>('home-greeting'),
   homeExerciseName: must<HTMLElement>('home-exercise-name'),
@@ -272,6 +273,11 @@ els.btnHomeEditProfile.addEventListener('click', () => {
   showScreen('profile');
 });
 els.btnStartBack.addEventListener('click', () => goHome());
+els.btnProfileBack.addEventListener('click', () => {
+  const p = loadProfile();
+  if (p) goHome(p);
+  else showScreen('language');
+});
 
 els.btnStart.addEventListener('click', () => void begin('session'));
 els.btnCalibrate.addEventListener('click', () => void begin('calibrate'));
@@ -314,14 +320,16 @@ async function begin(nextMode: Mode): Promise<void> {
   els.repTarget.textContent = String(targetReps);
   els.repOf.hidden = nextMode === 'calibrate';
   els.counterUnit.hidden = nextMode === 'session';
-  setStatus('Préparation…', '');
+  setStatus(t('status.preparing'), '');
   hideCue();
 
   showScreen('setup');
 
   source = new WebPoseSource({ video: els.video, facingMode: 'user' });
   source.onFrame(onFrame);
-  source.onError((e) => setStatus(`Erreur caméra : ${e.message}`, 'lost'));
+  source.onError((e) =>
+    setStatus(t('status.cameraError', { message: e.message }), 'lost'),
+  );
 
   try {
     await source.start();
@@ -369,25 +377,25 @@ function onFrame(frame: Frame): void {
 function handleSetup(frame: Frame): void {
   if (!bodyVisible(frame)) {
     setupGoodSince = null;
-    setStatus('Reculez, je dois voir tout votre corps', 'lost');
+    setStatus(t('status.stepBack'), 'lost');
     return;
   }
 
   setupGoodSince ??= frame.t;
   if (frame.t - setupGoodSince < SETUP_STABLE_MS) {
-    setStatus('Ne bougez pas…', '');
+    setStatus(t('status.holdStill'), '');
     return;
   }
 
   stage = 'active';
 
   if (mode === 'calibrate') {
-    setStatus('Faites 5 à 8 répétitions à votre rythme', 'ok');
+    setStatus(t('status.calibrateReady'), 'ok');
     speak('cue.setup_ready');
     return;
   }
 
-  setStatus('Prêt', 'ok');
+  setStatus(t('status.ready'), 'ok');
   speak('cue.setup_ready');
   setTimeout(() => speak('cue.start'), 1400);
 }
@@ -416,11 +424,11 @@ function handleEvent(ev: EngineEvent): void {
     case 'visibility':
       trackingOk = ev.ok;
       if (ev.ok) {
-        setStatus('Prêt', 'ok');
+        setStatus(t('status.ready'), 'ok');
         speak('cue.tracking_restored');
       } else {
         const legLost = ev.missing.some((p) => p === 'knee' || p === 'ankle');
-        setStatus('Je ne vous vois plus', 'lost');
+        setStatus(t('status.lost'), 'lost');
         speak(legLost ? 'cue.cannot_see_leg' : 'cue.cannot_see_body');
       }
       break;
@@ -460,7 +468,7 @@ function finish(): void {
 
     const cueEntries = Object.entries(summary.cues);
     els.sumCues.innerHTML = cueEntries.length
-      ? '<b>Rappels donnés</b><br />' +
+      ? `<b>${escapeHtml(t('done.cuesTitle'))}</b><br />` +
         cueEntries.map(([id, n]) => `${escapeHtml(id)} × ${n}`).join('<br />')
       : '';
   }
@@ -561,7 +569,7 @@ function showCalibration(frames: Frame[]): void {
     els.calPeak.textContent = '—';
     els.calCycles.textContent = '—';
     els.calVerdict.className = 'verdict bad';
-    els.calVerdict.textContent = 'Calibration impossible.';
+    els.calVerdict.textContent = t('cal.impossible');
     els.calWarnings.textContent = '';
     els.calJson.textContent = '';
     els.calError.hidden = false;
@@ -579,19 +587,18 @@ function showCalibration(frames: Frame[]): void {
 
   if (check.agrees) {
     els.calVerdict.className = 'verdict ok';
-    els.calVerdict.textContent =
-      `Vérifié : avec ces valeurs, le moteur compte ${check.reps} répétitions, ` +
-      `soit exactement ce que contient l’enregistrement.`;
+    els.calVerdict.textContent = t('cal.verdictOk', { reps: check.reps });
   } else {
     els.calVerdict.className = 'verdict bad';
-    els.calVerdict.textContent =
-      `À revoir : le moteur compte ${check.reps} répétitions alors que ` +
-      `l’enregistrement en contient ${check.expectedReps}. Recommencez ` +
-      `l’enregistrement avant d’utiliser ces valeurs.`;
+    els.calVerdict.textContent = t('cal.verdictBad', {
+      reps: check.reps,
+      expected: check.expectedReps,
+    });
   }
 
   els.calWarnings.innerHTML = report.warnings.length
-    ? '<b>Remarques</b><br />' + report.warnings.map(escapeHtml).join('<br />')
+    ? `<b>${escapeHtml(t('cal.warningsTitle'))}</b><br />` +
+      report.warnings.map(escapeHtml).join('<br />')
     : '';
 
   calibratedJson = JSON.stringify(tuned, null, 2);
@@ -602,12 +609,11 @@ async function copyCalibration(): Promise<void> {
   if (!calibratedJson) return;
   try {
     await navigator.clipboard.writeText(calibratedJson);
-    els.btnCalCopy.textContent = 'Copié';
-    setTimeout(() => (els.btnCalCopy.textContent = 'Copier'), 1500);
+    els.btnCalCopy.textContent = t('cal.copied');
+    setTimeout(() => (els.btnCalCopy.textContent = t('cal.copy')), 1500);
   } catch {
     els.calError.hidden = false;
-    els.calError.textContent =
-      'Copie refusée par le navigateur. Utilisez « Télécharger ».';
+    els.calError.textContent = t('cal.copyDenied');
   }
 }
 
@@ -696,14 +702,14 @@ function hideCue(): void {
 
 function toggleRecording(): void {
   if (recorder.isRecording) {
-    const note = prompt('Note pour cet enregistrement ?') ?? '';
+    const note = prompt(t('record.notePrompt')) ?? '';
     downloadFixture(recorder.stop(note, navigator.userAgent));
     els.btnRecord.classList.remove('chip--recording');
-    els.btnRecordLabel.textContent = 'Enregistrer';
+    els.btnRecordLabel.textContent = t('record.start');
   } else {
     recorder.start(def.id);
     els.btnRecord.classList.add('chip--recording');
-    els.btnRecordLabel.textContent = 'Arrêter';
+    els.btnRecordLabel.textContent = t('record.stop');
   }
 }
 
@@ -746,13 +752,9 @@ function formatDuration(ms: number): string {
 
 function cameraErrorMessage(e: unknown): string {
   const name = e instanceof DOMException ? e.name : '';
-  if (name === 'NotAllowedError') {
-    return 'Accès à la caméra refusé. Autorisez la caméra dans les réglages du navigateur.';
-  }
-  if (name === 'NotFoundError') return 'Aucune caméra détectée sur cet appareil.';
-  if (!window.isSecureContext) {
-    return 'La caméra exige HTTPS. Ouvrez la page en https ou sur localhost.';
-  }
+  if (name === 'NotAllowedError') return t('error.cameraDenied');
+  if (name === 'NotFoundError') return t('error.cameraNotFound');
+  if (!window.isSecureContext) return t('error.insecureContext');
   return e instanceof Error ? e.message : String(e);
 }
 

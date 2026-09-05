@@ -19,13 +19,6 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div class="aurora" aria-hidden="true">
-      <span class="aurora__blob aurora__blob--a"></span>
-      <span class="aurora__blob aurora__blob--b"></span>
-      <span class="aurora__blob aurora__blob--c"></span>
-      <span class="aurora__grain"></span>
-    </div>
-
     <div id="draft-banner" class="banner">
       <span class="banner__dot"></span>
       Prototype — définitions non validées cliniquement
@@ -37,7 +30,7 @@
         <p class="eyebrow" data-i18n="lang.prompt">Choisissez votre langue</p>
         <h1>Bienvenue</h1>
       </header>
-      <div class="stack">
+      <div class="stack lang-stack">
         <button class="btn btn--ghost btn--lg lang-btn" data-lang="fr">Français</button>
         <button class="btn btn--ghost btn--lg lang-btn" data-lang="ar">العربية</button>
         <button class="btn btn--ghost btn--lg lang-btn" data-lang="en">English</button>
@@ -46,9 +39,14 @@
 
     <!-- Step 2: profile -->
     <section id="screen-profile" class="screen screen--center" hidden>
+      <button id="btn-profile-back" class="link-btn back-link" data-i18n="nav.back">← Retour</button>
+
       <header class="hero hero--tight">
-        <p class="eyebrow" data-i18n="profile.title">Faisons connaissance</p>
-        <h1 data-i18n="profile.lead">Quelques informations avant de commencer.</h1>
+        <p class="eyebrow" data-i18n="profile.eyebrow">Avant de commencer</p>
+        <h1 data-i18n="profile.title">Faisons connaissance</h1>
+        <p class="lead" data-i18n="profile.lead">
+          Ces informations nous aident à adapter votre séance.
+        </p>
       </header>
 
       <div class="glass form-card">
@@ -101,7 +99,7 @@
         </label>
       </div>
 
-      <button id="btn-profile-continue" class="btn btn--primary btn--lg">
+      <button id="btn-profile-continue" class="btn btn--primary btn--lg push-end">
         <span data-i18n="profile.continue">Continuer</span>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
           <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
@@ -135,32 +133,36 @@
         </label>
       </div>
 
-      <button id="btn-home-start" class="btn btn--primary btn--lg">
-        <span data-i18n="home.start">Commencer la séance</span>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
-          <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
+      <div class="stack push-end">
+        <button id="btn-home-start" class="btn btn--primary btn--lg">
+          <span data-i18n="home.start">Commencer la séance</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
 
-      <div class="link-row">
-        <button id="btn-home-advanced" class="link-btn" data-i18n="home.advanced">Options avancées</button>
-        <button id="btn-home-edit-profile" class="link-btn" data-i18n="home.editProfile">Modifier le profil</button>
+        <div class="link-row">
+          <button id="btn-home-advanced" class="link-btn" data-i18n="home.advanced">Options avancées</button>
+          <button id="btn-home-edit-profile" class="link-btn" data-i18n="home.editProfile">Modifier le profil</button>
+        </div>
       </div>
     </section>
 
     <!-- Advanced / manual picker + calibration entry point -->
     <section id="screen-start" class="screen screen--center" hidden>
-      <button id="btn-start-back" class="link-btn back-link" data-i18n="nav.back">← Retour</button>
+      <button id="btn-start-back" class="link-btn back-link" data-i18n="advanced.back">← Retour</button>
 
       <header class="hero">
-        <p class="eyebrow">Rééducation à domicile</p>
-        <h1>Votre séance,<br />quand vous voulez.</h1>
-        <p class="lead">Posez le téléphone sur une table, à environ deux mètres.</p>
+        <p class="eyebrow" data-i18n="advanced.eyebrow">Options avancées</p>
+        <h1 data-i18n="advanced.title">Choisir un exercice</h1>
+        <p class="lead" data-i18n="advanced.lead">
+          Posez le téléphone sur une table, à environ deux mètres.
+        </p>
       </header>
 
       <div class="glass form-card">
         <label class="field">
-          <span class="field__label">Exercice</span>
+          <span class="field__label" data-i18n="advanced.exercise">Exercice</span>
           <div class="select-shell">
             <select id="exercise-select"></select>
             <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -170,7 +172,7 @@
         </label>
 
         <label class="field">
-          <span class="field__label">Répétitions</span>
+          <span class="field__label" data-i18n="advanced.reps">Répétitions</span>
           <div class="select-shell">
             <select id="target-select">
               <option value="5">5</option>
@@ -184,14 +186,16 @@
         </label>
       </div>
 
-      <div class="stack">
+      <div class="stack push-end">
         <button id="btn-start" class="btn btn--primary btn--lg">
-          <span>Commencer</span>
+          <span data-i18n="advanced.start">Commencer</span>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
             <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
-        <button id="btn-calibrate" class="btn btn--ghost">Calibrer cet exercice</button>
+        <button id="btn-calibrate" class="btn btn--ghost" data-i18n="advanced.calibrate">
+          Calibrer cet exercice
+        </button>
         <p id="start-error" class="error" hidden></p>
       </div>
     </section>
@@ -232,9 +236,9 @@
         <div class="controls">
           <button id="btn-record" class="chip">
             <span class="chip__rec"></span>
-            <span id="btn-record-label">Enregistrer</span>
+            <span id="btn-record-label" data-i18n="record.start">Enregistrer</span>
           </button>
-          <button id="btn-debug" class="chip">Détails</button>
+          <button id="btn-debug" class="chip" data-i18n="debug.label">Détails</button>
           <button id="btn-stop" class="btn btn--danger">Terminer</button>
         </div>
 
@@ -245,31 +249,33 @@
     <!-- Session summary -->
     <section id="screen-done" class="screen screen--center" hidden>
       <header class="hero hero--tight">
-        <p class="eyebrow eyebrow--success">Séance terminée</p>
-        <h1>Belle séance.</h1>
+        <p class="eyebrow eyebrow--success" data-i18n="done.eyebrow">Séance terminée</p>
+        <h1 data-i18n="done.title">Belle séance.</h1>
       </header>
 
       <div class="bento">
         <div class="glass stat stat--wide">
           <b id="sum-reps">0</b>
-          <span>répétitions</span>
+          <span data-i18n="done.reps">répétitions</span>
         </div>
         <div class="glass stat">
           <b id="sum-quality">—</b>
-          <span>qualité</span>
+          <span data-i18n="done.quality">qualité</span>
         </div>
         <div class="glass stat">
           <b id="sum-duration">—</b>
-          <span>durée</span>
+          <span data-i18n="done.duration">durée</span>
         </div>
       </div>
 
       <div class="glass estimate">
         <div class="estimate__row">
-          <span>Amplitude estimée</span>
+          <span data-i18n="done.romLabel">Amplitude estimée</span>
           <b id="sum-rom">—</b>
         </div>
-        <small>Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.</small>
+        <small data-i18n="done.romDisclaimer">
+          Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.
+        </small>
       </div>
 
       <div id="sum-cues" class="cues"></div>
@@ -305,28 +311,30 @@
         </div>
       </div>
 
-      <button id="btn-again" class="btn btn--primary btn--lg">Nouvelle séance</button>
+      <button id="btn-again" class="btn btn--primary btn--lg push-end" data-i18n="done.again">
+        Nouvelle séance
+      </button>
     </section>
 
     <!-- Calibration result -->
     <section id="screen-calibrated" class="screen screen--center" hidden>
       <header class="hero hero--tight">
-        <p class="eyebrow">Calibration</p>
-        <h1>Ajusté à vous.</h1>
+        <p class="eyebrow" data-i18n="cal.eyebrow">Calibration</p>
+        <h1 data-i18n="cal.title">Ajusté à vous.</h1>
       </header>
 
       <div class="bento">
         <div class="glass stat">
           <b id="cal-rest">—</b>
-          <span>angle au repos</span>
+          <span data-i18n="cal.restAngle">angle au repos</span>
         </div>
         <div class="glass stat">
           <b id="cal-peak">—</b>
-          <span>angle max</span>
+          <span data-i18n="cal.peakAngle">angle max</span>
         </div>
         <div class="glass stat">
           <b id="cal-cycles">—</b>
-          <span>mouvements</span>
+          <span data-i18n="cal.movements">mouvements</span>
         </div>
       </div>
 
@@ -334,15 +342,19 @@
       <div id="cal-warnings" class="cues"></div>
 
       <details class="glass details" open>
-        <summary>Définition calibrée</summary>
+        <summary data-i18n="cal.definitionLabel">Définition calibrée</summary>
         <pre id="cal-json" class="json"></pre>
       </details>
 
       <div class="row">
-        <button id="btn-cal-copy" class="btn btn--ghost">Copier</button>
-        <button id="btn-cal-download" class="btn btn--ghost">Télécharger</button>
+        <button id="btn-cal-copy" class="btn btn--ghost" data-i18n="cal.copy">Copier</button>
+        <button id="btn-cal-download" class="btn btn--ghost" data-i18n="cal.download">
+          Télécharger
+        </button>
       </div>
-      <button id="btn-cal-again" class="btn btn--primary btn--lg">Retour</button>
+      <button id="btn-cal-again" class="btn btn--primary btn--lg push-end" data-i18n="cal.back">
+        Retour
+      </button>
       <p id="cal-error" class="error" hidden></p>
     </section>
 

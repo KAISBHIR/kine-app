@@ -54,13 +54,60 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--bg);
   color: var(--text);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "ss01" 1, "cv01" 1;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+/*
+ * Ambient "aurora" glow, as a layered body background rather than absolutely
+ * positioned, blurred, negative-z-index divs.
+ *
+ * That div-based version measured correctly in every computed style and
+ * bounding-rect check (right position, right size, right opacity, right
+ * gradient) and was STILL never actually painted — confirmed by forcing one
+ * blob to solid opaque red and finding it completely absent from the
+ * rendered output. `position: fixed` + `z-index: -1` is a well-known fragile
+ * combination across compositor implementations. A `background-image` on
+ * `body` has no stacking context to get wrong: it is unconditionally the
+ * bottom-most paint of the element, in every engine. Verified visible in this
+ * project's screenshot harness before shipping — see the corresponding
+ * commit message for how the div-based version was diagnosed.
+ */
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 12% -8%, rgba(110, 168, 254, 0.55), transparent 62%),
+    radial-gradient(ellipse 65% 55% at 100% 105%, rgba(125, 250, 203, 0.42), transparent 62%),
+    radial-gradient(ellipse 55% 45% at 60% 32%, rgba(180, 130, 255, 0.32), transparent 62%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100%;
+  animation: aurora-drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0% {
+    background-position:
+      0% 0%,
+      0% 0%,
+      0% 0%;
+  }
+  100% {
+    background-position:
+      4% 6%,
+      -4% -6%,
+      -3% 5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
 }
 
 /*
@@ -78,80 +125,6 @@ body {
 
 ::selection {
   background: rgba(125, 250, 203, 0.25);
-}
-
-/* --- ambient background ------------------------------------------------- */
-
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.aurora__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.55;
-  will-change: transform;
-}
-
-.aurora__blob--a {
-  width: 60vmax;
-  height: 60vmax;
-  top: -20vmax;
-  left: -15vmax;
-  background: radial-gradient(circle, rgba(110, 168, 254, 0.5), transparent 70%);
-  animation: drift-a 26s ease-in-out infinite;
-}
-
-.aurora__blob--b {
-  width: 55vmax;
-  height: 55vmax;
-  bottom: -25vmax;
-  right: -18vmax;
-  background: radial-gradient(circle, rgba(125, 250, 203, 0.35), transparent 70%);
-  animation: drift-b 32s ease-in-out infinite;
-}
-
-.aurora__blob--c {
-  width: 40vmax;
-  height: 40vmax;
-  top: 30vh;
-  left: 50vw;
-  background: radial-gradient(circle, rgba(180, 130, 255, 0.22), transparent 70%);
-  animation: drift-c 22s ease-in-out infinite;
-}
-
-.aurora__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-}
-
-@keyframes drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(6vw, 8vh) scale(1.1); }
-}
-
-@keyframes drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-5vw, -6vh) scale(1.08); }
-}
-
-@keyframes drift-c {
-  0%, 100% { transform: translate(-50%, 0) scale(1); }
-  50% { transform: translate(-50%, 4vh) scale(1.15); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .aurora__blob {
-    animation: none;
-  }
 }
 
 /* --- banner -------------------------------------------------------------- */
@@ -193,13 +166,31 @@ body {
 }
 
 .screen--center {
-  padding: 76px 20px 40px;
+  min-height: 100dvh;
+  padding: 88px 20px 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  justify-content: center;
+  /*
+   * flex-start, not center. Centering a short block (e.g. the 3-button
+   * language screen) inside a full-height flex column leaves equally dead
+   * space above AND below it — a floating island instead of a page. Content
+   * anchors to the top, right under the header, the way every reference app
+   * (Whoop/Oura/Cal) does it. `.push-end` below re-introduces bottom-pinning
+   * for exactly the elements that should hug the bottom (primary CTAs), so a
+   * short screen still ends with intentional whitespace, not incidental gaps
+   * in the middle.
+   */
+  justify-content: flex-start;
   max-width: 520px;
   margin: 0 auto;
+}
+
+/* Pushes this element (and anything after it) to the bottom of the screen
+   when there is leftover vertical space, without affecting layout when there
+   isn't. Put it on the primary CTA / final action group of a screen. */
+.push-end {
+  margin-top: auto;
 }
 
 @keyframes rise {
@@ -872,6 +863,10 @@ select:focus-visible {
 }
 
 /* --- language screen ----------------------------------------------------*/
+
+.lang-stack {
+  margin-top: 48px;
+}
 
 .lang-btn {
   justify-content: flex-start;
