@@ -6,6 +6,9 @@ import sitToStand from '../definitions/sit_to_stand.json';
 import straightLegRaise from '../definitions/straight_leg_raise.json';
 import heelRaises from '../definitions/heel_raises.json';
 import standingHipAbduction from '../definitions/standing_hip_abduction.json';
+import seatedShoulderAbduction from '../definitions/seated_shoulder_abduction.json';
+import seatedOverheadReach from '../definitions/seated_overhead_reach.json';
+import seatedElbowFlexion from '../definitions/seated_elbow_flexion.json';
 
 const RAW: unknown[] = [
   seatedKneeExtension,
@@ -13,6 +16,9 @@ const RAW: unknown[] = [
   straightLegRaise,
   heelRaises,
   standingHipAbduction,
+  seatedShoulderAbduction,
+  seatedOverheadReach,
+  seatedElbowFlexion,
 ];
 
 const ALL: ExerciseDefinition[] = RAW.map(validateDefinition);

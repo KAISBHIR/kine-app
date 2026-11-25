@@ -1,0 +1,59 @@
+{
+  "id": "seated_overhead_reach",
+  "version": 1,
+  "nameKey": "exercise.seated_overhead_reach",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Same signal as side arm raises, continued overhead (frontal-plane elevation). The phone must be far enough that raised hands stay roughly in frame, though only shoulder/elbow/hip are required.",
+  "clinical": {
+    "status": "draft"
+  },
+  "camera": {
+    "view": "front",
+    "distanceM": 1.8,
+    "height": "seated_chest",
+    "setupCueKey": "cue.setup_seated_front"
+  },
+  "requiredParts": [
+    "shoulder",
+    "elbow",
+    "hip"
+  ],
+  "side": "auto",
+  "signal": {
+    "type": "jointAngle",
+    "joint": "shoulder"
+  },
+  "rep": {
+    "enterDeg": 135,
+    "exitDeg": 50,
+    "minHoldMs": 300,
+    "minDurationMs": 1500,
+    "maxDurationMs": 12000
+  },
+  "rom": {
+    "goalPeakDeg": 165,
+    "minAcceptablePeakDeg": 130
+  },
+  "tempo": {
+    "idealMs": 5000
+  },
+  "formRules": [
+    {
+      "id": "torso_lean",
+      "type": "segmentTilt",
+      "from": "shoulder",
+      "to": "hip",
+      "maxDeg": 20,
+      "cueKey": "cue.sit_tall",
+      "severity": "info",
+      "debounceMs": 800,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": {
+    "maxSetDurationMs": 180000,
+    "stopOn": [
+      "severe_pain",
+      "dizziness"
+    ]
+  }
+}

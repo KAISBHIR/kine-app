@@ -68,6 +68,12 @@ export const CUES: Cue[] = [
     'استدر بحيث يكون جانبك نحو الهاتف.',
     'Turn so your side faces the phone.',
   ),
+  cue(
+    'cue.setup_seated_front',
+    'Asseyez-vous face au téléphone. Le haut de votre corps et vos bras doivent être visibles.',
+    'اجلس مقابل الهاتف. يجب أن يظهر الجزء العلوي من جسمك وذراعاك.',
+    'Sit facing the phone. Your upper body and arms should be visible.',
+  ),
   cue('cue.setup_ready', 'Parfait, je vous vois.', 'ممتاز، أراك الآن.', 'Perfect, I can see you.'),
   cue(
     'cue.setup_lighting',
@@ -108,6 +114,27 @@ export const CUES: Cue[] = [
     'Try extending your leg a little further.',
     { note: 'Fires on a partial rep. Must not sound like failure.' },
   ),
+  cue(
+    'cue.raise_arms_further',
+    'Essayez de monter les bras un peu plus haut.',
+    'حاول رفع ذراعيك أعلى قليلاً.',
+    'Try raising your arms a little higher.',
+    { note: 'Fires on a partial rep. Must not sound like failure.' },
+  ),
+  cue(
+    'cue.bend_elbows_further',
+    'Essayez de plier les coudes un peu plus.',
+    'حاول ثني مرفقيك أكثر قليلاً.',
+    'Try bending your elbows a little more.',
+    { note: 'Fires on a partial rep. Must not sound like failure.' },
+  ),
+  cue(
+    'cue.keep_elbows_in',
+    'Gardez les coudes près du corps.',
+    'أبقِ مرفقيك قريبين من جسمك.',
+    'Keep your elbows close to your body.',
+  ),
+  cue('cue.sit_tall', 'Tenez-vous bien droit sur la chaise.', 'اجلس مستقيماً على الكرسي.', 'Sit up tall in your chair.'),
   cue(
     'cue.keep_back_against_chair',
     'Gardez le dos contre la chaise.',

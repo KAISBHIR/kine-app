@@ -8,7 +8,9 @@
  * system for yet, and nothing sensitive sitting on a server.
  */
 
-export type RehabArea = 'knee' | 'hip' | 'ankle' | 'back' | 'shoulder' | 'other';
+export type RehabArea = 'shoulder' | 'knee' | 'hip' | 'ankle' | 'back' | 'other';
+
+export const DEFAULT_AREA: RehabArea = 'shoulder';
 export type Prescriber = 'physio' | 'doctor' | 'center' | 'other';
 
 export interface PatientProfile {
@@ -58,15 +60,35 @@ export interface ProgramItem {
   targetReps: number;
 }
 
+const UPPER_BODY_SEATED = ['seated_shoulder_abduction', 'seated_overhead_reach', 'seated_elbow_flexion'];
+
 const AREA_TO_PROGRAM: Record<RehabArea, string[]> = {
+  // Entirely seated, arms only: the default, and the easiest to try out.
+  shoulder: UPPER_BODY_SEATED,
   knee: ['seated_knee_extension', 'sit_to_stand', 'straight_leg_raise'],
   hip: ['sit_to_stand', 'standing_hip_abduction', 'straight_leg_raise'],
   ankle: ['seated_knee_extension', 'sit_to_stand', 'heel_raises'],
-  back: ['sit_to_stand', 'standing_hip_abduction', 'straight_leg_raise'],
-  // No upper-body exercise shipped yet — a general lower-limb programme.
-  shoulder: ['sit_to_stand', 'standing_hip_abduction', 'heel_raises'],
-  other: ['seated_knee_extension', 'sit_to_stand', 'heel_raises'],
+  back: ['seated_overhead_reach', 'seated_shoulder_abduction', 'seated_knee_extension'],
+  other: UPPER_BODY_SEATED,
 };
+
+/** Where the patient is for an exercise — shown on Home so nobody is surprised. */
+export type Position = 'seated' | 'standing' | 'lying';
+
+const POSITION: Record<string, Position> = {
+  seated_shoulder_abduction: 'seated',
+  seated_overhead_reach: 'seated',
+  seated_elbow_flexion: 'seated',
+  seated_knee_extension: 'seated',
+  sit_to_stand: 'standing',
+  standing_hip_abduction: 'standing',
+  heel_raises: 'standing',
+  straight_leg_raise: 'lying',
+};
+
+export function exercisePosition(exerciseId: string): Position {
+  return POSITION[exerciseId] ?? 'seated';
+}
 
 export const DEFAULT_TARGET_REPS = 10;
 

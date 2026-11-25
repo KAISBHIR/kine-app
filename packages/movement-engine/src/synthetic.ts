@@ -204,3 +204,138 @@ export function cleanReps(
     ...extra,
   });
 }
+
+// --- seated, front view, upper body --------------------------------------
+
+/**
+ * Synthetic seated patient facing the camera, moving the arms.
+ *
+ * - `shoulder`: both arms rise sideways in the image plane. `deg` is the
+ *   abduction of the arm from hanging (0) through shoulder height (90) to
+ *   overhead (~170).
+ * - `elbow`: upper arms stay at the sides, forearms flex TOWARD the camera.
+ *   `deg` is real elbow flexion (0 = straight, 140 = hand near shoulder). The
+ *   2D projection of that movement is what makes front-view elbow angles
+ *   behave like a step function, and the generator models it on purpose so
+ *   tests exercise the same geometry a real phone sees.
+ *
+ * The person's left side appears on the RIGHT of the image (camera facing).
+ */
+export type SeatedArmMotion = 'shoulder' | 'elbow';
+
+const UPPER_ARM = 0.15;
+const FOREARM = 0.14;
+
+export function skeletonSeatedFront(
+  motion: SeatedArmMotion,
+  deg: number,
+  rnd: () => number,
+  opts: SkeletonOptions = {},
+): Landmark[] {
+  const noise = opts.noise ?? 0;
+  const vis = opts.legVisibility ?? 0.93;
+
+  const pts = new Array<Landmark>(LANDMARK_COUNT);
+  for (let i = 0; i < LANDMARK_COUNT; i++) pts[i] = lm(0.5, 0.5, 0.1);
+  const put = (idx: number, x: number, y: number, v = vis) => {
+    const nx = noise > 0 ? x + gaussian(rnd) * noise : x;
+    const ny = noise > 0 ? y + gaussian(rnd) * noise : y;
+    pts[idx] = lm(nx, ny, v);
+  };
+
+  // Torso lean sideways (towards image +x) for form-rule tests.
+  const lean = ((opts.torsoTiltDeg ?? 0) * Math.PI) / 180;
+  const hipY = 0.62;
+  const shoulderY = 0.36;
+  const torsoH = hipY - shoulderY;
+  const hipL: [number, number] = [0.555, hipY];
+  const hipR: [number, number] = [0.445, hipY];
+  const shL: [number, number] = [0.58 + torsoH * Math.sin(lean), hipY - torsoH * Math.cos(lean)];
+  const shR: [number, number] = [0.42 + torsoH * Math.sin(lean), hipY - torsoH * Math.cos(lean)];
+
+  const arm = (sh: [number, number], outward: 1 | -1) => {
+    let elbow: [number, number];
+    let wrist: [number, number];
+    if (motion === 'shoulder') {
+      const a = (deg * Math.PI) / 180;
+      const dx = outward * Math.sin(a);
+      const dy = Math.cos(a);
+      elbow = [sh[0] + UPPER_ARM * dx, sh[1] + UPPER_ARM * dy];
+      wrist = [elbow[0] + FOREARM * dx, elbow[1] + FOREARM * dy];
+    } else {
+      // Upper arm hangs slightly outward; forearm swings forward-and-up,
+      // drifting a little towards the midline as real curls do.
+      const a0 = (8 * Math.PI) / 180;
+      elbow = [sh[0] + outward * UPPER_ARM * Math.sin(a0), sh[1] + UPPER_ARM * Math.cos(a0)];
+      const b = (deg * Math.PI) / 180;
+      wrist = [elbow[0] - outward * 0.025 * Math.sin(b), elbow[1] + FOREARM * Math.cos(b)];
+    }
+    return { elbow, wrist };
+  };
+
+  const L = arm(shL, 1);
+  const R = arm(shR, -1);
+
+  put(POSE_LANDMARK.NOSE, (shL[0] + shR[0]) / 2, shoulderY - 0.11);
+  put(POSE_LANDMARK.LEFT_EYE, (shL[0] + shR[0]) / 2 + 0.02, shoulderY - 0.125);
+  put(POSE_LANDMARK.RIGHT_EYE, (shL[0] + shR[0]) / 2 - 0.02, shoulderY - 0.125);
+  put(POSE_LANDMARK.LEFT_EAR, (shL[0] + shR[0]) / 2 + 0.045, shoulderY - 0.115);
+  put(POSE_LANDMARK.RIGHT_EAR, (shL[0] + shR[0]) / 2 - 0.045, shoulderY - 0.115);
+
+  put(POSE_LANDMARK.LEFT_SHOULDER, ...shL);
+  put(POSE_LANDMARK.RIGHT_SHOULDER, ...shR);
+  put(POSE_LANDMARK.LEFT_ELBOW, ...L.elbow);
+  put(POSE_LANDMARK.RIGHT_ELBOW, ...R.elbow);
+  put(POSE_LANDMARK.LEFT_WRIST, ...L.wrist);
+  put(POSE_LANDMARK.RIGHT_WRIST, ...R.wrist);
+  put(POSE_LANDMARK.LEFT_HIP, ...hipL);
+  put(POSE_LANDMARK.RIGHT_HIP, ...hipR);
+  // Seated: thighs point at the camera, so knees sit just below the hips.
+  put(POSE_LANDMARK.LEFT_KNEE, 0.565, 0.74, 0.8);
+  put(POSE_LANDMARK.RIGHT_KNEE, 0.435, 0.74, 0.8);
+  put(POSE_LANDMARK.LEFT_ANKLE, 0.565, 0.92, 0.6);
+  put(POSE_LANDMARK.RIGHT_ANKLE, 0.435, 0.92, 0.6);
+
+  return pts;
+}
+
+export interface SeatedArmSequenceOptions extends SkeletonOptions {
+  motion: SeatedArmMotion;
+  reps: RepSpec[];
+  /** Resting value of `deg` between reps. Default 5. */
+  startDeg?: number;
+  fps?: number;
+  restMs?: number;
+  leadInMs?: number;
+  seed?: number;
+}
+
+/** Seated front-view arm movement with known ground truth. */
+export function generateSeatedArmSequence(opts: SeatedArmSequenceOptions): SyntheticSequence {
+  const fps = opts.fps ?? 30;
+  const dt = 1000 / fps;
+  const start = opts.startDeg ?? 5;
+  const restMs = opts.restMs ?? 800;
+  const leadInMs = opts.leadInMs ?? 700;
+  const rnd = mulberry32(opts.seed ?? 1);
+
+  const frames: Frame[] = [];
+  const angles: number[] = [];
+  let t = 0;
+  const emit = (deg: number) => {
+    frames.push({ t, landmarks: skeletonSeatedFront(opts.motion, deg, rnd, opts) });
+    angles.push(deg);
+    t += dt;
+  };
+
+  for (let e = 0; e < leadInMs; e += dt) emit(start);
+  for (const rep of opts.reps) {
+    const move = Math.max(rep.durationMs - rep.holdMs, dt * 2);
+    const half = move / 2;
+    for (let e = 0; e < half; e += dt) emit(start + (rep.peakDeg - start) * smoothstep(e / half));
+    for (let e = 0; e < rep.holdMs; e += dt) emit(rep.peakDeg);
+    for (let e = 0; e < half; e += dt) emit(rep.peakDeg - (rep.peakDeg - start) * smoothstep(e / half));
+    for (let e = 0; e < restMs; e += dt) emit(start);
+  }
+  return { frames, angles };
+}

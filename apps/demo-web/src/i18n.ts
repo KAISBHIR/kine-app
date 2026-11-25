@@ -53,6 +53,20 @@ type Key =
   | 'home.setupHint'
   | 'banner.prototype'
   | 'session.finish'
+  | 'app.name'
+  | 'app.tag'
+  | 'profile.optional'
+  | 'areaHint.shoulder'
+  | 'areaHint.knee'
+  | 'areaHint.hip'
+  | 'areaHint.ankle'
+  | 'areaHint.back'
+  | 'areaHint.other'
+  | 'position.seated'
+  | 'position.standing'
+  | 'position.lying'
+  | 'status.showUpperBody'
+  | 'home.setupHintSeated'
   | 'home.programTitle'
   | 'home.repsEach'
   | 'home.language'
@@ -131,7 +145,7 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'Avant de commencer',
-    'profile.title': 'Faisons connaissance',
+    'profile.title': "Votre profil",
     'profile.lead': 'Ces informations nous aident à adapter votre séance.',
     'profile.name': 'Votre prénom',
     'profile.namePlaceholder': 'Ex. Fatima',
@@ -144,7 +158,7 @@ const STRINGS: Record<Locale, Dict> = {
     'area.hip': 'Hanche',
     'area.ankle': 'Cheville',
     'area.back': 'Dos',
-    'area.shoulder': 'Épaule',
+    'area.shoulder': "Épaule et bras",
     'area.other': 'Autre',
     'prescriber.physio': 'Kinésithérapeute',
     'prescriber.doctor': 'Médecin',
@@ -165,6 +179,20 @@ const STRINGS: Record<Locale, Dict> = {
     'banner.prototype': 'Prototype — définitions non validées cliniquement',
     'done.titleNone': 'Séance arrêtée.',
     'session.finish': 'Terminer',
+    'app.name': "Kiné à domicile",
+    'app.tag': "Prototype",
+    'profile.optional': "(facultatif)",
+    'areaHint.shoulder': "Exercices assis",
+    'areaHint.knee': "Assis, debout, allongé",
+    'areaHint.hip': "Debout et allongé",
+    'areaHint.ankle': "Assis et debout",
+    'areaHint.back': "Principalement assis",
+    'areaHint.other': "Exercices assis",
+    'position.seated': "Assis",
+    'position.standing': "Debout",
+    'position.lying': "Allongé",
+    'status.showUpperBody': "Asseyez-vous face au téléphone, le haut du corps visible",
+    'home.setupHintSeated': "Posez le téléphone debout sur une table, à 1,5 – 2 mètres, et asseyez-vous face à lui. Vos bras et le haut de votre corps doivent être visibles.",
     'home.programTitle': "Programme du jour",
     'home.repsEach': "{reps} répétitions",
     'home.language': "Langue",
@@ -252,7 +280,7 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'قبل البدء',
-    'profile.title': 'لنتعرّف عليك',
+    'profile.title': "ملفك الشخصي",
     'profile.lead': 'تساعدنا هذه المعلومات على تخصيص جلستك.',
     'profile.name': 'اسمك',
     'profile.namePlaceholder': 'مثال: فاطمة',
@@ -265,7 +293,7 @@ const STRINGS: Record<Locale, Dict> = {
     'area.hip': 'الورك',
     'area.ankle': 'الكاحل',
     'area.back': 'الظهر',
-    'area.shoulder': 'الكتف',
+    'area.shoulder': "الكتف والذراع",
     'area.other': 'أخرى',
     'prescriber.physio': 'أخصائي علاج طبيعي',
     'prescriber.doctor': 'طبيب',
@@ -284,6 +312,20 @@ const STRINGS: Record<Locale, Dict> = {
     'banner.prototype': 'نموذج أولي — التمارين لم يُصادق عليها سريرياً بعد',
     'done.titleNone': 'تم إيقاف الجلسة.',
     'session.finish': 'إنهاء',
+    'app.name': "العلاج الطبيعي في المنزل",
+    'app.tag': "نموذج أولي",
+    'profile.optional': "(اختياري)",
+    'areaHint.shoulder': "تمارين في وضعية الجلوس",
+    'areaHint.knee': "جلوس، وقوف، استلقاء",
+    'areaHint.hip': "وقوف واستلقاء",
+    'areaHint.ankle': "جلوس ووقوف",
+    'areaHint.back': "غالباً في وضعية الجلوس",
+    'areaHint.other': "تمارين في وضعية الجلوس",
+    'position.seated': "جلوس",
+    'position.standing': "وقوف",
+    'position.lying': "استلقاء",
+    'status.showUpperBody': "اجلس مقابل الهاتف بحيث يظهر الجزء العلوي من جسمك",
+    'home.setupHintSeated': "ضع الهاتف واقفاً على طاولة على بعد متر ونصف إلى مترين، واجلس مقابله. يجب أن تظهر ذراعاك والجزء العلوي من جسمك.",
     'home.programTitle': "برنامج اليوم",
     'home.repsEach': "{reps} تكرارات",
     'home.language': "اللغة",
@@ -369,7 +411,7 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'Before we start',
-    'profile.title': "Let's get to know you",
+    'profile.title': "Your profile",
     'profile.lead': 'This helps us tailor your session.',
     'profile.name': 'Your first name',
     'profile.namePlaceholder': 'e.g. Sarah',
@@ -382,7 +424,7 @@ const STRINGS: Record<Locale, Dict> = {
     'area.hip': 'Hip',
     'area.ankle': 'Ankle',
     'area.back': 'Back',
-    'area.shoulder': 'Shoulder',
+    'area.shoulder': "Shoulder and arm",
     'area.other': 'Other',
     'prescriber.physio': 'Physiotherapist',
     'prescriber.doctor': 'Doctor',
@@ -401,6 +443,20 @@ const STRINGS: Record<Locale, Dict> = {
     'banner.prototype': 'Prototype — exercises not yet clinically validated',
     'done.titleNone': 'Session stopped.',
     'session.finish': 'Finish',
+    'app.name': "Home physio",
+    'app.tag': "Prototype",
+    'profile.optional': "(optional)",
+    'areaHint.shoulder': "Seated exercises",
+    'areaHint.knee': "Seated, standing, lying",
+    'areaHint.hip': "Standing and lying",
+    'areaHint.ankle': "Seated and standing",
+    'areaHint.back': "Mostly seated",
+    'areaHint.other': "Seated exercises",
+    'position.seated': "Seated",
+    'position.standing': "Standing",
+    'position.lying': "Lying down",
+    'status.showUpperBody': "Sit facing the phone with your upper body in view",
+    'home.setupHintSeated': "Stand the phone on a table 1.5–2 metres away and sit facing it. Your arms and upper body should be visible.",
     'home.programTitle': "Today's programme",
     'home.repsEach': "{reps} repetitions",
     'home.language': "Language",

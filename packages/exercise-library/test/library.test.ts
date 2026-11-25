@@ -12,7 +12,7 @@ import { getCue } from '@kine/shared';
 
 describe('exercise library', () => {
   it('loads and validates all shipped definitions', () => {
-    expect(listExercises()).toHaveLength(5);
+    expect(listExercises()).toHaveLength(8);
   });
 
   it('gives every exercise a unique id', () => {

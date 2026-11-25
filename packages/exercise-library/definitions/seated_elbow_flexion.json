@@ -1,0 +1,59 @@
+{
+  "id": "seated_elbow_flexion",
+  "version": 1,
+  "nameKey": "exercise.seated_elbow_flexion",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Front view: the forearm moves TOWARD the camera, so the 2D elbow angle is close to a step function (~180 while the hand is below the elbow, small once it is above). It is a reliable rep counter, NOT a range-of-motion measure - the demo hides the angle for this exercise. A side view would measure it properly but means turning the chair.",
+  "clinical": {
+    "status": "draft"
+  },
+  "camera": {
+    "view": "front",
+    "distanceM": 1.8,
+    "height": "seated_chest",
+    "setupCueKey": "cue.setup_seated_front"
+  },
+  "requiredParts": [
+    "shoulder",
+    "elbow",
+    "wrist"
+  ],
+  "side": "auto",
+  "signal": {
+    "type": "jointAngle",
+    "joint": "elbow"
+  },
+  "rep": {
+    "enterDeg": 70,
+    "exitDeg": 130,
+    "minHoldMs": 200,
+    "minDurationMs": 1000,
+    "maxDurationMs": 10000
+  },
+  "rom": {
+    "goalPeakDeg": 30,
+    "minAcceptablePeakDeg": 60
+  },
+  "tempo": {
+    "idealMs": 3000
+  },
+  "formRules": [
+    {
+      "id": "elbow_drift",
+      "type": "landmarkDrift",
+      "part": "elbow",
+      "axis": "x",
+      "maxDelta": 0.06,
+      "cueKey": "cue.keep_elbows_in",
+      "severity": "info",
+      "debounceMs": 600,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": {
+    "maxSetDurationMs": 180000,
+    "stopOn": [
+      "severe_pain",
+      "dizziness"
+    ]
+  }
+}

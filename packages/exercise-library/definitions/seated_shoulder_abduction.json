@@ -1,0 +1,59 @@
+{
+  "id": "seated_shoulder_abduction",
+  "version": 1,
+  "nameKey": "exercise.seated_shoulder_abduction",
+  "notes": "PLACEHOLDER THRESHOLDS - NOT CLINICALLY VALIDATED. Seated, facing the phone: abduction happens in the image plane, so the 2D shoulder angle (hip-shoulder-elbow) tracks it well. Arms hang at ~5-15 deg; shoulder height is ~90 deg. Wrist is deliberately not required so a framing that crops the hands still counts. exitDeg is 40 (not lower) because a trunk lean adds directly to the resting shoulder angle: at a 25 deg lean, hanging arms already read ~35 deg.",
+  "clinical": {
+    "status": "draft"
+  },
+  "camera": {
+    "view": "front",
+    "distanceM": 1.8,
+    "height": "seated_chest",
+    "setupCueKey": "cue.setup_seated_front"
+  },
+  "requiredParts": [
+    "shoulder",
+    "elbow",
+    "hip"
+  ],
+  "side": "auto",
+  "signal": {
+    "type": "jointAngle",
+    "joint": "shoulder"
+  },
+  "rep": {
+    "enterDeg": 70,
+    "exitDeg": 40,
+    "minHoldMs": 300,
+    "minDurationMs": 1200,
+    "maxDurationMs": 12000
+  },
+  "rom": {
+    "goalPeakDeg": 90,
+    "minAcceptablePeakDeg": 65
+  },
+  "tempo": {
+    "idealMs": 4000
+  },
+  "formRules": [
+    {
+      "id": "torso_lean",
+      "type": "segmentTilt",
+      "from": "shoulder",
+      "to": "hip",
+      "maxDeg": 20,
+      "cueKey": "cue.sit_tall",
+      "severity": "info",
+      "debounceMs": 800,
+      "cooldownMs": 8000
+    }
+  ],
+  "safety": {
+    "maxSetDurationMs": 180000,
+    "stopOn": [
+      "severe_pain",
+      "dizziness"
+    ]
+  }
+}

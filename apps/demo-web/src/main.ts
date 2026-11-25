@@ -18,14 +18,17 @@ import {
 } from '@kine/movement-engine';
 import { getExercise, listExercises } from '@kine/exercise-library';
 import { LandmarkRecorder, MockPoseSource } from '@kine/pose-source';
-import { cleanReps } from '@kine/movement-engine';
+import { cleanReps, generateSeatedArmSequence } from '@kine/movement-engine';
+import { exerciseIllustration } from './illustrations';
 import { WebPoseSource } from '@kine/pose-source/web';
 import { drawSkeleton, fitOverlay } from './skeleton';
 import { WebSpeechVoice } from './voice';
 import { downloadFixture } from './recorder';
 import { applyI18n, getLocale, loadStoredLocale, setLocale, t } from './i18n';
 import {
+  DEFAULT_AREA,
   DEFAULT_TARGET_REPS,
+  exercisePosition,
   loadProfile,
   programForArea,
   saveProfile,
@@ -63,7 +66,7 @@ const els = {
 
   profileName: must<HTMLInputElement>('profile-name'),
   profileAge: must<HTMLInputElement>('profile-age'),
-  profileArea: must<HTMLSelectElement>('profile-area'),
+  profileArea: must<HTMLFieldSetElement>('profile-area'),
   profilePrescriber: must<HTMLSelectElement>('profile-prescriber'),
   btnProfileContinue: must<HTMLButtonElement>('btn-profile-continue'),
   btnProfileBack: must<HTMLButtonElement>('btn-profile-back'),
@@ -77,6 +80,8 @@ const els = {
   between: must<HTMLElement>('between'),
   betweenStep: must<HTMLElement>('between-step'),
   betweenName: must<HTMLElement>('between-name'),
+  betweenIllus: must<HTMLElement>('between-illus'),
+  homeTip: must<HTMLElement>('screen-home').querySelector<HTMLElement>('.tip p')!,
   betweenReps: must<HTMLElement>('between-reps'),
   betweenSetup: must<HTMLElement>('between-setup'),
   betweenCountdown: must<HTMLElement>('between-countdown'),
@@ -171,8 +176,55 @@ const MOCK_POSE = new URLSearchParams(location.search).has('mock');
 
 function createSource(): WebPoseSource | MockPoseSource {
   if (!MOCK_POSE) return new WebPoseSource({ video: els.video, facingMode: 'user' });
-  const { frames } = cleanReps(60, 165, 4000, { noise: 0.004, seed: 7 });
-  return new MockPoseSource({ frames, speed: 6, loop: true });
+  return new MockPoseSource({ frames: mockFrames(def), speed: 6, loop: true });
+}
+
+/** A synthetic patient doing the current exercise (approximately, for legs). */
+function mockFrames(exercise: ExerciseDefinition): Frame[] {
+  const sig = exercise.signal;
+  if (sig.type === 'jointAngle' && (sig.joint === 'shoulder' || sig.joint === 'elbow')) {
+    const peakDeg = sig.joint === 'elbow' ? 140 : exercise.rom.goalPeakDeg;
+    const reps = Array.from({ length: 60 }, () => ({ peakDeg, durationMs: 3500, holdMs: 600 }));
+    return generateSeatedArmSequence({ motion: sig.joint, reps, noise: 0.004, seed: 7 }).frames;
+  }
+  return cleanReps(60, 165, 4000, { noise: 0.004, seed: 7 }).frames;
+}
+
+/** Upper-body exercises are done seated, facing the phone: no legs in frame. */
+function isSeatedFront(exercise: ExerciseDefinition): boolean {
+  return exercise.camera.view === 'front' && !exercise.requiredParts.includes('knee');
+}
+
+function stepBackMessage(): string {
+  return t(isSeatedFront(def) ? 'status.showUpperBody' : 'status.stepBack');
+}
+
+/** The "go a little further" prompt that matches the body part moving. */
+function partialCueKey(exercise: ExerciseDefinition): string {
+  const sig = exercise.signal;
+  if (sig.type === 'jointAngle' && sig.joint === 'shoulder') return 'cue.raise_arms_further';
+  if (sig.type === 'jointAngle' && sig.joint === 'elbow') return 'cue.bend_elbows_further';
+  return 'cue.extend_further';
+}
+
+/**
+ * Front-view elbow angles are a rep counter, not a measurement (the forearm
+ * moves toward the camera), so no angle is shown for them.
+ */
+function showsAngle(exercise: ExerciseDefinition): boolean {
+  const sig = exercise.signal;
+  return !(sig.type === 'jointAngle' && sig.joint === 'elbow' && exercise.camera.view === 'front');
+}
+
+function selectedArea(): RehabArea {
+  const checked = els.profileArea.querySelector<HTMLInputElement>('input[name="area"]:checked');
+  return (checked?.value as RehabArea | undefined) ?? DEFAULT_AREA;
+}
+
+function selectArea(area: RehabArea): void {
+  for (const input of els.profileArea.querySelectorAll<HTMLInputElement>('input[name="area"]')) {
+    input.checked = input.value === area;
+  }
 }
 let session: ExerciseSession | null = null;
 let def: ExerciseDefinition = getExercise('seated_knee_extension');
@@ -280,15 +332,24 @@ function renderHome(profile: PatientProfile): void {
   for (const item of items) {
     const li = document.createElement('li');
     li.className = 'program-list__item';
+    const illus = document.createElement('span');
+    illus.className = 'illus';
+    illus.innerHTML = exerciseIllustration(item.exerciseId);
+    const text = document.createElement('span');
+    text.className = 'program-list__text';
     const name = document.createElement('span');
     name.className = 'program-list__name';
     name.textContent = exerciseName(getExercise(item.exerciseId).nameKey, getLocale());
-    const reps = document.createElement('span');
-    reps.className = 'program-list__meta';
-    reps.textContent = t('home.repsEach', { reps: item.targetReps });
-    li.append(name, reps);
+    const meta = document.createElement('span');
+    meta.className = 'program-list__meta';
+    meta.textContent = `${t('home.repsEach', { reps: item.targetReps })} · ${t(`position.${exercisePosition(item.exerciseId)}`)}`;
+    text.append(name, meta);
+    li.append(illus, text);
     els.homeProgram.append(li);
   }
+
+  const allSeatedFront = items.every((i) => isSeatedFront(getExercise(i.exerciseId)));
+  els.homeTip.textContent = t(allSeatedFront ? 'home.setupHintSeated' : 'home.setupHint');
 
   // ~5 s per rep plus the rest between exercises.
   const seconds =
@@ -324,7 +385,7 @@ els.btnProfileContinue.addEventListener('click', () => {
   const profile: PatientProfile = {
     name,
     age: els.profileAge.value ? Number(els.profileAge.value) : null,
-    area: els.profileArea.value as RehabArea,
+    area: selectedArea(),
     prescriber: els.profilePrescriber.value as Prescriber,
   };
   saveProfile(profile);
@@ -347,7 +408,7 @@ els.btnHomeEditProfile.addEventListener('click', () => {
   if (p) {
     els.profileName.value = p.name;
     els.profileAge.value = p.age ? String(p.age) : '';
-    els.profileArea.value = p.area;
+    selectArea(p.area);
     els.profilePrescriber.value = p.prescriber;
   }
   showScreen('profile');
@@ -429,7 +490,7 @@ async function begin(nextMode: Mode): Promise<void> {
     // The pose source only emits a frame once it finds a body. Without this,
     // someone standing too close or off to the side sees "Getting ready…"
     // forever and has no idea the camera is already waiting for them.
-    if (stage === 'setup' && setupGoodSince === null) setStatus(t('status.stepBack'), 'lost');
+    if (stage === 'setup' && setupGoodSince === null) setStatus(stepBackMessage(), 'lost');
 
     if (wantsVideo) {
       const stream = source instanceof WebPoseSource ? source.mediaStream : null;
@@ -507,6 +568,7 @@ function showBetween(): void {
     total: program.length,
   });
   els.betweenName.textContent = exerciseName(nextDef.nameKey, getLocale());
+  els.betweenIllus.innerHTML = exerciseIllustration(nextDef.id);
   els.betweenReps.textContent = t('home.repsEach', { reps: next.targetReps });
   els.betweenSetup.textContent = say(nextDef.camera.setupCueKey, getLocale());
   els.between.hidden = false;
@@ -533,7 +595,13 @@ function startNextExercise(): void {
   els.between.hidden = true;
   loadExercise(programIndex + 1);
   stage = 'setup';
-  setStatus(t('status.stepBack'), 'lost');
+  setStatus(stepBackMessage(), 'lost');
+  if (MOCK_POSE && source) {
+    source.stop();
+    source = createSource();
+    source.onFrame(onFrame);
+    void source.start();
+  }
   speak('cue.next_exercise');
   const setupCue = def.camera.setupCueKey;
   setTimeout(() => speak(setupCue), 1200);
@@ -578,7 +646,7 @@ function pushReplayFrame(frame: Frame): void {
 function handleSetup(frame: Frame): void {
   if (!bodyVisible(frame)) {
     setupGoodSince = null;
-    setStatus(t('status.stepBack'), 'lost');
+    setStatus(stepBackMessage(), 'lost');
     return;
   }
 
@@ -614,7 +682,7 @@ function handleEvent(ev: EngineEvent): void {
       const now = performance.now();
       if (now - lastPartialCueAt < PARTIAL_CUE_COOLDOWN_MS) break;
       lastPartialCueAt = now;
-      showCue('cue.extend_further');
+      showCue(partialCueKey(def));
       break;
     }
 
@@ -716,7 +784,9 @@ function renderSummary(): void {
     } else {
       const parts = [`${s.reps}/${item.targetReps} ${t('done.repsShort')}`];
       if (s.quality !== null) parts.push(`${t('done.quality')} ${s.quality}%`);
-      if (s.bestPeakDeg !== null) parts.push(`~${Math.round(s.bestPeakDeg)}°`);
+      if (s.bestPeakDeg !== null && showsAngle(getExercise(item.exerciseId))) {
+        parts.push(`~${Math.round(s.bestPeakDeg)}°`);
+      }
       meta.textContent = parts.join(' · ');
     }
     li.append(name, meta);
@@ -884,6 +954,9 @@ function downloadCalibration(): void {
 
 function showScreen(next: Stage): void {
   stage = next;
+  // Drives screen-specific chrome in CSS (the app bar hides on the camera).
+  document.body.dataset.screen = next;
+  if (next !== 'setup' && next !== 'active' && next !== 'between') window.scrollTo(0, 0);
   els.screenLanguage.hidden = next !== 'language';
   els.screenProfile.hidden = next !== 'profile';
   els.screenHome.hidden = next !== 'home';

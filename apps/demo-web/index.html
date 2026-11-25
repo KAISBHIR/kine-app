@@ -3,386 +3,331 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#07070c" />
-    <!-- Day 1 verification: install to the iOS home screen and confirm
-         getUserMedia still works in standalone mode. Fallback is a Safari link. -->
+    <meta name="theme-color" content="#f5f7f8" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..800&family=Manrope:wght@500..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Rééducation à domicile — démo</title>
+    <title>Kiné à domicile</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
-  <body>
-    <div id="draft-banner" class="banner">
-      <span class="banner__dot"></span>
+  <body data-screen="language">
+    <header class="appbar">
+      <div class="appbar__inner">
+        <span class="appbar__brand">
+          <svg class="appbar__logo" viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="9" fill="currentColor" />
+            <circle cx="11.5" cy="9" r="2.6" fill="#fff" />
+            <path d="M11.5 13v8h7.5l5-4.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span data-i18n="app.name">Kiné à domicile</span>
+        </span>
+      </div>
+    </header>
+
+    <div id="draft-banner" class="notice">
+      <svg viewBox="0 0 20 20" aria-hidden="true" class="notice__icon"><path d="M10 2.5 18 17H2L10 2.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 8v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="14.5" r=".9" fill="currentColor"/></svg>
       <span data-i18n="banner.prototype">Prototype — définitions non validées cliniquement</span>
     </div>
 
-    <!-- Step 1: language -->
-    <section id="screen-language" class="screen screen--center">
-      <header class="hero">
-        <p class="eyebrow" data-i18n="lang.prompt">Choisissez votre langue</p>
-        <h1>Bienvenue</h1>
-      </header>
-      <div class="stack lang-stack">
-        <button class="btn btn--ghost btn--lg lang-btn" data-lang="fr">Français</button>
-        <button class="btn btn--ghost btn--lg lang-btn" data-lang="ar">العربية</button>
-        <button class="btn btn--ghost btn--lg lang-btn" data-lang="en">English</button>
-      </div>
-    </section>
+    <main>
+      <!-- Language -->
+      <section id="screen-language" class="screen page" hidden>
+        <header class="page__head">
+          <h1 data-i18n="lang.prompt">Choisissez votre langue</h1>
+        </header>
+        <div class="choice-list">
+          <button class="choice lang-btn" data-lang="fr">
+            <span class="choice__title">Français</span>
+            <svg class="choice__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+          <button class="choice lang-btn" data-lang="ar">
+            <span class="choice__title">العربية</span>
+            <svg class="choice__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+          <button class="choice lang-btn" data-lang="en">
+            <span class="choice__title">English</span>
+            <svg class="choice__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+        </div>
+      </section>
 
-    <!-- Step 2: profile -->
-    <section id="screen-profile" class="screen screen--center" hidden>
-      <button id="btn-profile-back" class="link-btn back-link" data-i18n="nav.back">← Retour</button>
+      <!-- Profile -->
+      <section id="screen-profile" class="screen page" hidden>
+        <button id="btn-profile-back" class="back-link" data-i18n="nav.back">← Retour</button>
+        <header class="page__head">
+          <h1 data-i18n="profile.title">Votre profil</h1>
+          <p class="lead" data-i18n="profile.lead">Ces informations nous aident à adapter votre séance.</p>
+        </header>
 
-      <header class="hero hero--tight">
-        <p class="eyebrow" data-i18n="profile.eyebrow">Avant de commencer</p>
-        <h1 data-i18n="profile.title">Faisons connaissance</h1>
-        <p class="lead" data-i18n="profile.lead">
-          Ces informations nous aident à adapter votre séance.
-        </p>
-      </header>
+        <div class="card form">
+          <label class="field">
+            <span class="field__label" data-i18n="profile.name">Votre prénom</span>
+            <input id="profile-name" class="input" type="text" data-i18n-placeholder="profile.namePlaceholder" autocomplete="given-name" />
+          </label>
 
-      <div class="glass form-card">
-        <label class="field">
-          <span class="field__label" data-i18n="profile.name">Votre prénom</span>
-          <input
-            id="profile-name"
-            class="text-input"
-            type="text"
-            data-i18n-placeholder="profile.namePlaceholder"
-            autocomplete="given-name"
-          />
-        </label>
+          <fieldset id="profile-area" class="field">
+            <legend class="field__label" data-i18n="profile.area">Zone de rééducation</legend>
+            <div class="tiles">
+              <label class="tile"><input type="radio" name="area" value="shoulder" checked /><span class="tile__title" data-i18n="area.shoulder">Épaule et bras</span><span class="tile__sub" data-i18n="areaHint.shoulder">Exercices assis</span></label>
+              <label class="tile"><input type="radio" name="area" value="knee" /><span class="tile__title" data-i18n="area.knee">Genou</span><span class="tile__sub" data-i18n="areaHint.knee">Assis, debout, allongé</span></label>
+              <label class="tile"><input type="radio" name="area" value="hip" /><span class="tile__title" data-i18n="area.hip">Hanche</span><span class="tile__sub" data-i18n="areaHint.hip">Debout et allongé</span></label>
+              <label class="tile"><input type="radio" name="area" value="ankle" /><span class="tile__title" data-i18n="area.ankle">Cheville</span><span class="tile__sub" data-i18n="areaHint.ankle">Assis et debout</span></label>
+              <label class="tile"><input type="radio" name="area" value="back" /><span class="tile__title" data-i18n="area.back">Dos</span><span class="tile__sub" data-i18n="areaHint.back">Exercices assis</span></label>
+              <label class="tile"><input type="radio" name="area" value="other" /><span class="tile__title" data-i18n="area.other">Autre</span><span class="tile__sub" data-i18n="areaHint.other">Exercices assis</span></label>
+            </div>
+          </fieldset>
 
-        <label class="field">
-          <span class="field__label" data-i18n="profile.age">Âge</span>
-          <input id="profile-age" class="text-input" type="number" min="1" max="120" inputmode="numeric" />
-        </label>
+          <label class="field">
+              <span class="field__label" data-i18n="profile.prescriber">Qui a prescrit ce programme ?</span>
+              <span class="select">
+                <select id="profile-prescriber">
+                  <option value="physio" data-i18n="prescriber.physio">Kinésithérapeute</option>
+                  <option value="doctor" data-i18n="prescriber.doctor">Médecin</option>
+                  <option value="center" data-i18n="prescriber.center">Centre de rééducation</option>
+                  <option value="other" data-i18n="prescriber.other">Autre</option>
+                </select>
+              </span>
+            </label>
 
-        <label class="field">
-          <span class="field__label" data-i18n="profile.area">Zone de rééducation</span>
-          <div class="select-shell">
-            <select id="profile-area">
-              <option value="knee" data-i18n="area.knee">Genou</option>
-              <option value="hip" data-i18n="area.hip">Hanche</option>
-              <option value="ankle" data-i18n="area.ankle">Cheville</option>
-              <option value="back" data-i18n="area.back">Dos</option>
-              <option value="shoulder" data-i18n="area.shoulder">Épaule</option>
-              <option value="other" data-i18n="area.other">Autre</option>
-            </select>
-            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </div>
-        </label>
-
-        <label class="field">
-          <span class="field__label" data-i18n="profile.prescriber">Qui a prescrit ce programme ?</span>
-          <div class="select-shell">
-            <select id="profile-prescriber">
-              <option value="physio" data-i18n="prescriber.physio">Kinésithérapeute</option>
-              <option value="doctor" data-i18n="prescriber.doctor">Médecin</option>
-              <option value="center" data-i18n="prescriber.center">Centre de rééducation</option>
-              <option value="other" data-i18n="prescriber.other">Autre</option>
-            </select>
-            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </div>
-        </label>
-      </div>
-
-      <button id="btn-profile-continue" class="btn btn--primary btn--lg push-end">
-        <span data-i18n="profile.continue">Continuer</span>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
-          <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-    </section>
-
-    <!-- Step 3: home dashboard -->
-    <section id="screen-home" class="screen screen--center" hidden>
-      <header class="hero">
-        <p class="eyebrow" id="home-greeting">Bonjour</p>
-        <h1 data-i18n="home.ready">Votre séance est prête</h1>
-      </header>
-
-      <div class="glass form-card home-card">
-        <div class="home-card__row">
-          <span class="home-card__title" data-i18n="home.programTitle">Programme du jour</span>
-          <span id="home-session-info" class="home-card__meta">—</span>
+          <label class="field field--narrow">
+            <span class="field__label"><span data-i18n="profile.age">Âge</span> <span class="field__opt" data-i18n="profile.optional">(facultatif)</span></span>
+            <input id="profile-age" class="input" type="number" min="1" max="120" inputmode="numeric" />
+          </label>
         </div>
 
-        <ol id="home-program" class="program-list"></ol>
+        <button id="btn-profile-continue" class="btn btn--primary btn--block">
+          <span data-i18n="profile.continue">Continuer</span>
+        </button>
+      </section>
 
-        <label class="consent">
+      <!-- Home -->
+      <section id="screen-home" class="screen page" hidden>
+        <header class="page__head">
+          <p class="kicker" id="home-greeting">Bonjour</p>
+          <h1 data-i18n="home.ready">Votre séance est prête</h1>
+        </header>
+
+        <div class="card program">
+          <div class="program__head">
+            <h2 class="card__title" data-i18n="home.programTitle">Programme du jour</h2>
+            <span id="home-session-info" class="card__meta">—</span>
+          </div>
+          <ol id="home-program" class="program-list"></ol>
+        </div>
+
+        <div class="tip">
+          <svg class="tip__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></svg>
+          <p>Posez le téléphone debout, à environ 2 mètres. Tout votre corps doit être visible à l’écran.</p>
+        </div>
+
+        <label class="card consent">
           <input id="video-consent" type="checkbox" />
           <span class="consent__box" aria-hidden="true"></span>
           <span class="consent__text">
-            <span data-i18n="home.videoConsent">Enregistrer une vidéo pour mon kiné</span>
-            <small data-i18n="home.videoConsentHint">
-              Optionnel. Sans cette option, seul le squelette (aucune image de vous) est
-              conservé.
-            </small>
+            <span class="consent__title" data-i18n="home.videoConsent">Enregistrer une vidéo pour mon kiné</span>
+            <small data-i18n="home.videoConsentHint">Optionnel. Sans cette option, seul le squelette (aucune image de vous) est conservé.</small>
           </span>
         </label>
-      </div>
 
-      <p class="lead setup-hint" data-i18n="home.setupHint">
-        Posez le téléphone debout, à environ 2 mètres. Tout votre corps doit être visible à l’écran.
-      </p>
-
-      <div class="stack push-end">
-        <p id="home-error" class="error" hidden></p>
-        <button id="btn-home-start" class="btn btn--primary btn--lg">
-          <span data-i18n="home.start">Commencer la séance</span>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-
-        <div class="link-row">
-          <button id="btn-home-advanced" class="link-btn" data-i18n="home.advanced">Options avancées</button>
-          <button id="btn-home-edit-profile" class="link-btn" data-i18n="home.editProfile">Modifier le profil</button>
-          <button id="btn-home-language" class="link-btn" data-i18n="home.language">Langue</button>
+        <div class="actions">
+          <p id="home-error" class="error" hidden></p>
+          <button id="btn-home-start" class="btn btn--primary btn--block">
+            <span data-i18n="home.start">Commencer la séance</span>
+          </button>
+          <div class="link-row">
+            <button id="btn-home-edit-profile" class="link" data-i18n="home.editProfile">Modifier le profil</button>
+            <button id="btn-home-language" class="link" data-i18n="home.language">Langue</button>
+            <button id="btn-home-advanced" class="link" data-i18n="home.advanced">Options avancées</button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Advanced / manual picker + calibration entry point -->
-    <section id="screen-start" class="screen screen--center" hidden>
-      <button id="btn-start-back" class="link-btn back-link" data-i18n="advanced.back">← Retour</button>
+      <!-- Advanced: single exercise + calibration -->
+      <section id="screen-start" class="screen page" hidden>
+        <button id="btn-start-back" class="back-link" data-i18n="advanced.back">← Retour</button>
+        <header class="page__head">
+          <h1 data-i18n="advanced.title">Choisir un exercice</h1>
+          <p class="lead" data-i18n="advanced.lead">Posez le téléphone sur une table, à environ deux mètres.</p>
+        </header>
 
-      <header class="hero">
-        <p class="eyebrow" data-i18n="advanced.eyebrow">Options avancées</p>
-        <h1 data-i18n="advanced.title">Choisir un exercice</h1>
-        <p class="lead" data-i18n="advanced.lead">
-          Posez le téléphone sur une table, à environ deux mètres.
-        </p>
-      </header>
+        <div class="card form">
+          <label class="field">
+            <span class="field__label" data-i18n="advanced.exercise">Exercice</span>
+            <span class="select"><select id="exercise-select"></select></span>
+          </label>
+          <label class="field">
+            <span class="field__label" data-i18n="advanced.reps">Répétitions</span>
+            <span class="select">
+              <select id="target-select">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="15">15</option>
+              </select>
+            </span>
+          </label>
+        </div>
 
-      <div class="glass form-card">
-        <label class="field">
-          <span class="field__label" data-i18n="advanced.exercise">Exercice</span>
-          <div class="select-shell">
-            <select id="exercise-select"></select>
-            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </div>
-        </label>
+        <div class="actions">
+          <button id="btn-start" class="btn btn--primary btn--block" data-i18n="advanced.start">Commencer</button>
+          <button id="btn-calibrate" class="btn btn--secondary btn--block" data-i18n="advanced.calibrate">Calibrer cet exercice</button>
+          <p id="start-error" class="error" hidden></p>
+        </div>
+      </section>
 
-        <label class="field">
-          <span class="field__label" data-i18n="advanced.reps">Répétitions</span>
-          <div class="select-shell">
-            <select id="target-select">
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="15">15</option>
-            </select>
-            <svg class="select-shell__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </div>
-        </label>
-      </div>
+      <!-- Camera: session and calibration -->
+      <section id="screen-session" class="screen screen--full" hidden>
+        <div class="stage">
+          <video id="video" playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div class="stage__scrim"></div>
 
-      <div class="stack push-end">
-        <button id="btn-start" class="btn btn--primary btn--lg">
-          <span data-i18n="advanced.start">Commencer</span>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        <button id="btn-calibrate" class="btn btn--ghost" data-i18n="advanced.calibrate">
-          Calibrer cet exercice
-        </button>
-        <p id="start-error" class="error" hidden></p>
-      </div>
-    </section>
-
-    <!-- Camera screen: used for both a session and a calibration run -->
-    <section id="screen-session" class="screen screen--full" hidden>
-      <div class="stage">
-        <video id="video" playsinline muted></video>
-        <canvas id="overlay"></canvas>
-        <div class="stage__scrim"></div>
-
-        <div id="hud" class="hud">
-          <div id="hud-exercise" class="hud-exercise" hidden></div>
-          <div class="ring-wrap">
-            <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-              <defs>
-                <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#7dfacb" />
-                  <stop offset="100%" stop-color="#6ea8fe" />
-                </linearGradient>
-              </defs>
-              <circle class="ring__track" cx="100" cy="100" r="88" />
-              <circle id="ring-progress" class="ring__progress" cx="100" cy="100" r="88" />
-            </svg>
-            <div id="rep-counter" class="counter" dir="ltr">
-              <span id="rep-done">0</span>
-              <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
-              <span id="counter-unit" class="slash" hidden>°</span>
+          <div id="hud" class="hud">
+            <div id="hud-exercise" class="hud__exercise" hidden></div>
+            <div class="ring-wrap">
+              <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+                <defs>
+                  <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2dd4bf" />
+                    <stop offset="100%" stop-color="#14b8a6" />
+                  </linearGradient>
+                </defs>
+                <circle class="ring__track" cx="100" cy="100" r="88" />
+                <circle id="ring-progress" class="ring__progress" cx="100" cy="100" r="88" />
+              </svg>
+              <div id="rep-counter" class="counter" dir="ltr">
+                <span id="rep-done">0</span>
+                <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
+                <span id="counter-unit" class="slash" hidden>°</span>
+              </div>
+            </div>
+            <div id="status" class="status">
+              <span class="status__dot"></span>
+              <span id="status-text">Préparation…</span>
             </div>
           </div>
-          <div id="status" class="status">
-            <span class="status__dot"></span>
-            <span id="status-text">Préparation…</span>
+
+          <div id="cue" class="cue" hidden></div>
+
+          <div class="controls">
+            <button id="btn-record" class="chip" hidden>
+              <span class="chip__rec"></span>
+              <span id="btn-record-label" data-i18n="record.start">Enregistrer</span>
+            </button>
+            <button id="btn-debug" class="chip" data-i18n="debug.label">Détails</button>
+            <button id="btn-skip" class="chip" data-i18n="session.skip" hidden>Suivant</button>
+            <button id="btn-stop" class="chip chip--stop" data-i18n="session.finish">Terminer</button>
+          </div>
+
+          <pre id="debug" class="debug" hidden></pre>
+
+          <div id="between" class="between" hidden>
+            <div class="sheet">
+              <p class="kicker kicker--ok" data-i18n="between.eyebrow">Bien joué — exercice suivant</p>
+              <div class="sheet__row">
+                <div id="between-illus" class="illus illus--lg"></div>
+                <div>
+                  <p id="between-step" class="sheet__step">—</p>
+                  <h2 id="between-name" class="sheet__name">—</h2>
+                  <p id="between-reps" class="sheet__meta">—</p>
+                </div>
+              </div>
+              <p id="between-setup" class="sheet__setup">—</p>
+              <button id="btn-between-go" class="btn btn--primary btn--block" data-i18n="between.go">Je suis prêt</button>
+              <p id="between-countdown" class="sheet__countdown">—</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary -->
+      <section id="screen-done" class="screen page" hidden>
+        <header class="page__head done-head">
+          <span class="done-head__badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+          </span>
+          <p class="kicker kicker--ok" data-i18n="done.eyebrow">Séance terminée</p>
+          <h1 id="done-title">Belle séance.</h1>
+        </header>
+
+        <div class="stats">
+          <div class="stat"><b id="sum-reps">0</b><span data-i18n="done.reps">répétitions</span></div>
+          <div class="stat"><b id="sum-quality">—</b><span data-i18n="done.quality">qualité</span></div>
+          <div class="stat"><b id="sum-duration">—</b><span data-i18n="done.duration">durée</span></div>
+        </div>
+
+        <div class="card">
+          <h2 class="card__title" data-i18n="done.perExercise">Détail par exercice</h2>
+          <ul id="sum-exercises" class="result-list"></ul>
+          <p class="fineprint" data-i18n="done.romDisclaimer">Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.</p>
+        </div>
+
+        <div id="sum-cues" class="card cues"></div>
+
+        <div id="replay-card" class="card media-card" hidden>
+          <div class="media-card__head">
+            <h2 class="card__title" data-i18n="replay.title">Revoir la séance</h2>
+            <button id="btn-replay-toggle" class="chip chip--light"><span id="btn-replay-label" data-i18n="replay.play">Lecture</span></button>
+          </div>
+          <canvas id="replay-canvas" class="replay-canvas" width="360" height="360"></canvas>
+          <p class="fineprint" data-i18n="replay.hint">Rejoue le squelette enregistré — aucune image de vous n’est stockée.</p>
+        </div>
+
+        <div id="video-card" class="card media-card" hidden>
+          <div class="media-card__head">
+            <h2 class="card__title" data-i18n="video.title">Vidéo de la séance</h2>
+          </div>
+          <video id="video-playback" class="video-playback" controls playsinline></video>
+          <p class="fineprint" data-i18n="video.hint">Enregistrée avec votre accord, pour votre kinésithérapeute.</p>
+          <div class="btn-row">
+            <button id="btn-video-share" class="btn btn--secondary"><span data-i18n="video.share">Partager avec mon kiné</span></button>
+            <button id="btn-video-download" class="btn btn--secondary"><span data-i18n="video.download">Télécharger</span></button>
           </div>
         </div>
 
-        <div id="cue" class="cue" hidden></div>
+        <div class="actions">
+          <button id="btn-again" class="btn btn--primary btn--block" data-i18n="done.again">Nouvelle séance</button>
+        </div>
+      </section>
 
-        <div class="controls">
-          <button id="btn-record" class="chip" hidden>
-            <span class="chip__rec"></span>
-            <span id="btn-record-label" data-i18n="record.start">Enregistrer</span>
-          </button>
-          <button id="btn-debug" class="chip" data-i18n="debug.label">Détails</button>
-          <button id="btn-skip" class="chip" data-i18n="session.skip" hidden>Suivant</button>
-          <button id="btn-stop" class="btn btn--danger" data-i18n="session.finish">Terminer</button>
+      <!-- Calibration result -->
+      <section id="screen-calibrated" class="screen page" hidden>
+        <header class="page__head">
+          <p class="kicker" data-i18n="cal.eyebrow">Calibration</p>
+          <h1 data-i18n="cal.title">Ajusté à vous.</h1>
+        </header>
+
+        <div class="stats">
+          <div class="stat"><b id="cal-rest">—</b><span data-i18n="cal.restAngle">angle au repos</span></div>
+          <div class="stat"><b id="cal-peak">—</b><span data-i18n="cal.peakAngle">angle max</span></div>
+          <div class="stat"><b id="cal-cycles">—</b><span data-i18n="cal.movements">mouvements</span></div>
         </div>
 
-        <pre id="debug" class="debug" hidden></pre>
+        <div id="cal-verdict" class="verdict"></div>
+        <div id="cal-warnings" class="card cues"></div>
 
-        <!-- Rest card between two exercises of the programme. The camera keeps
-             running underneath so there is no model reload between exercises. -->
-        <div id="between" class="between" hidden>
-          <div class="glass between__card">
-            <p class="eyebrow eyebrow--success" data-i18n="between.eyebrow">Bien joué — exercice suivant</p>
-            <p id="between-step" class="between__step">—</p>
-            <h2 id="between-name" class="between__name">—</h2>
-            <p id="between-reps" class="between__meta">—</p>
-            <p id="between-setup" class="between__setup">—</p>
-            <button id="btn-between-go" class="btn btn--primary btn--lg" data-i18n="between.go">Je suis prêt</button>
-            <p id="between-countdown" class="between__countdown">—</p>
-          </div>
+        <details class="card details" open>
+          <summary data-i18n="cal.definitionLabel">Définition calibrée</summary>
+          <pre id="cal-json" class="json"></pre>
+        </details>
+
+        <div class="btn-row">
+          <button id="btn-cal-copy" class="btn btn--secondary" data-i18n="cal.copy">Copier</button>
+          <button id="btn-cal-download" class="btn btn--secondary" data-i18n="cal.download">Télécharger</button>
         </div>
-      </div>
-    </section>
-
-    <!-- Session summary -->
-    <section id="screen-done" class="screen screen--center" hidden>
-      <header class="hero hero--tight">
-        <p class="eyebrow eyebrow--success" data-i18n="done.eyebrow">Séance terminée</p>
-        <h1 id="done-title">Belle séance.</h1>
-      </header>
-
-      <div class="bento">
-        <div class="glass stat stat--wide">
-          <b id="sum-reps">0</b>
-          <span data-i18n="done.reps">répétitions</span>
+        <div class="actions">
+          <button id="btn-cal-again" class="btn btn--primary btn--block" data-i18n="cal.back">Retour</button>
+          <p id="cal-error" class="error" hidden></p>
         </div>
-        <div class="glass stat">
-          <b id="sum-quality">—</b>
-          <span data-i18n="done.quality">qualité</span>
-        </div>
-        <div class="glass stat">
-          <b id="sum-duration">—</b>
-          <span data-i18n="done.duration">durée</span>
-        </div>
-      </div>
-
-      <div class="glass estimate">
-        <div class="estimate__row">
-          <span data-i18n="done.perExercise">Détail par exercice</span>
-        </div>
-        <ul id="sum-exercises" class="result-list"></ul>
-        <small data-i18n="done.romDisclaimer">
-          Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.
-        </small>
-      </div>
-
-      <div id="sum-cues" class="cues"></div>
-
-      <!-- Skeleton replay: always available, no image of the patient ever exists. -->
-      <div id="replay-card" class="glass replay-card" hidden>
-        <div class="replay-card__head">
-          <span data-i18n="replay.title">Revoir la séance</span>
-          <button id="btn-replay-toggle" class="chip chip--inline">
-            <span id="btn-replay-label" data-i18n="replay.play">Lecture</span>
-          </button>
-        </div>
-        <canvas id="replay-canvas" class="replay-canvas" width="360" height="360"></canvas>
-        <small data-i18n="replay.hint">
-          Rejoue le squelette enregistré — aucune image de vous n’est stockée.
-        </small>
-      </div>
-
-      <!-- Real video: only rendered when the patient opted in before the session. -->
-      <div id="video-card" class="glass replay-card" hidden>
-        <div class="replay-card__head">
-          <span data-i18n="video.title">Vidéo de la séance</span>
-        </div>
-        <video id="video-playback" class="video-playback" controls playsinline></video>
-        <small data-i18n="video.hint">Enregistrée avec votre accord, pour votre kinésithérapeute.</small>
-        <div class="row">
-          <button id="btn-video-share" class="btn btn--ghost">
-            <span data-i18n="video.share">Partager avec mon kiné</span>
-          </button>
-          <button id="btn-video-download" class="btn btn--ghost">
-            <span data-i18n="video.download">Télécharger</span>
-          </button>
-        </div>
-      </div>
-
-      <button id="btn-again" class="btn btn--primary btn--lg push-end" data-i18n="done.again">
-        Nouvelle séance
-      </button>
-    </section>
-
-    <!-- Calibration result -->
-    <section id="screen-calibrated" class="screen screen--center" hidden>
-      <header class="hero hero--tight">
-        <p class="eyebrow" data-i18n="cal.eyebrow">Calibration</p>
-        <h1 data-i18n="cal.title">Ajusté à vous.</h1>
-      </header>
-
-      <div class="bento">
-        <div class="glass stat">
-          <b id="cal-rest">—</b>
-          <span data-i18n="cal.restAngle">angle au repos</span>
-        </div>
-        <div class="glass stat">
-          <b id="cal-peak">—</b>
-          <span data-i18n="cal.peakAngle">angle max</span>
-        </div>
-        <div class="glass stat">
-          <b id="cal-cycles">—</b>
-          <span data-i18n="cal.movements">mouvements</span>
-        </div>
-      </div>
-
-      <div id="cal-verdict" class="verdict"></div>
-      <div id="cal-warnings" class="cues"></div>
-
-      <details class="glass details" open>
-        <summary data-i18n="cal.definitionLabel">Définition calibrée</summary>
-        <pre id="cal-json" class="json"></pre>
-      </details>
-
-      <div class="row">
-        <button id="btn-cal-copy" class="btn btn--ghost" data-i18n="cal.copy">Copier</button>
-        <button id="btn-cal-download" class="btn btn--ghost" data-i18n="cal.download">
-          Télécharger
-        </button>
-      </div>
-      <button id="btn-cal-again" class="btn btn--primary btn--lg push-end" data-i18n="cal.back">
-        Retour
-      </button>
-      <p id="cal-error" class="error" hidden></p>
-    </section>
+      </section>
+    </main>
 
     <script type="module" src="/src/main.ts"></script>
     <script type="module" src="/src/ring.ts"></script>

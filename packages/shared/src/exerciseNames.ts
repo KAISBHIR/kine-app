@@ -6,6 +6,21 @@ import type { Locale } from './cues';
  * go through the same clinical review as any other patient-facing string.
  */
 export const EXERCISE_NAMES: Record<string, Record<Locale, string>> = {
+  'exercise.seated_shoulder_abduction': {
+    fr: 'Élévation latérale des bras',
+    ar: 'رفع الذراعين جانبياً',
+    en: 'Side arm raises',
+  },
+  'exercise.seated_overhead_reach': {
+    fr: 'Bras tendus vers le haut',
+    ar: 'مدّ الذراعين إلى الأعلى',
+    en: 'Overhead reach',
+  },
+  'exercise.seated_elbow_flexion': {
+    fr: 'Flexion des coudes',
+    ar: 'ثني المرفقين',
+    en: 'Elbow bends',
+  },
   'exercise.seated_knee_extension': {
     fr: 'Extension du genou assis',
     ar: 'بسط الركبة في وضعية الجلوس',
