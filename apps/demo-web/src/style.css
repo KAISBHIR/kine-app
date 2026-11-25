@@ -50,16 +50,23 @@
   box-sizing: border-box;
 }
 
+/*
+ * min-height, not height, and overflow-x: clip, not hidden. `height: 100%`
+ * plus `overflow-x: hidden` on both html and body turns <body> into its own
+ * scroll box exactly one screen tall: anything below the fold (the profile
+ * form's Continue button on a phone) is clipped, and iOS Safari never
+ * collapses its address bar because the document itself never scrolls.
+ */
 html,
 body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
   color: var(--text);
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "ss01" 1, "cv01" 1;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /*
@@ -594,6 +601,7 @@ select:focus-visible {
 
 .controls {
   position: absolute;
+  z-index: 6; /* stays above the rest card so "Finish" is always reachable */
   left: 14px;
   right: 14px;
   bottom: 24px;
@@ -1084,4 +1092,180 @@ select:focus-visible {
   #rep-done {
     font-size: 50px;
   }
+}
+
+/* --- home setup hint ---------------------------------------------------- */
+
+.setup-hint {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* --- programme list (home) ---------------------------------------------- */
+
+.program-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  counter-reset: step;
+}
+
+.program-list__item {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.program-list__item::before {
+  content: counter(step);
+  grid-row: 1 / span 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--accent-text);
+  background: var(--accent-grad);
+}
+
+.program-list__name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.program-list__meta {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* --- session: current exercise label -------------------------------------*/
+
+.hud-exercise {
+  max-width: calc(100% - 32px);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(10, 10, 16, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+}
+
+/* --- rest card between exercises ---------------------------------------- */
+
+.between {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 5, 10, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: rise 0.4s var(--ease) both;
+}
+
+.between__card {
+  width: 100%;
+  max-width: 440px;
+  padding: 26px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(16, 16, 24, 0.92);
+}
+
+.between__step {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.between__name {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.between__meta {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-a);
+}
+
+.between__setup {
+  margin: 6px 0 12px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.between__countdown {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- per-exercise results (summary) --------------------------------------*/
+
+.result-list {
+  list-style: none;
+  margin: 4px 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.result-list__item:first-child {
+  border-top: 0;
+}
+
+.result-list__name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.result-list__meta {
+  font-size: 15px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.result-list__item--muted .result-list__name,
+.result-list__item--muted .result-list__meta {
+  color: var(--muted-dim);
 }

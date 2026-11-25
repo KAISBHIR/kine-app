@@ -50,6 +50,21 @@ type Key =
   | 'home.videoConsentHint'
   | 'home.advanced'
   | 'home.editProfile'
+  | 'home.setupHint'
+  | 'banner.prototype'
+  | 'session.finish'
+  | 'home.programTitle'
+  | 'home.repsEach'
+  | 'home.language'
+  | 'session.exerciseOf'
+  | 'session.skip'
+  | 'between.eyebrow'
+  | 'between.countdown'
+  | 'between.go'
+  | 'done.perExercise'
+  | 'done.repsShort'
+  | 'done.notDone'
+  | 'done.titleNone'
   | 'advanced.eyebrow'
   | 'advanced.title'
   | 'advanced.lead'
@@ -138,13 +153,29 @@ const STRINGS: Record<Locale, Dict> = {
 
     'home.greeting': 'Bonjour {name}',
     'home.ready': 'Votre séance est prête',
-    'home.sessionInfo': '{count} exercice · environ {minutes} min',
+    'home.sessionInfo': '{count} exercices · environ {minutes} min',
     'home.start': 'Commencer la séance',
     'home.videoConsent': 'Enregistrer une vidéo pour mon kiné',
     'home.videoConsentHint':
       'Optionnel. Sans cette option, seul le squelette (aucune image de vous) est conservé.',
     'home.advanced': 'Options avancées',
     'home.editProfile': 'Modifier le profil',
+    'home.setupHint':
+      'Posez le téléphone debout, à environ 2 mètres. Tout votre corps doit être visible à l’écran.',
+    'banner.prototype': 'Prototype — définitions non validées cliniquement',
+    'done.titleNone': 'Séance arrêtée.',
+    'session.finish': 'Terminer',
+    'home.programTitle': "Programme du jour",
+    'home.repsEach': "{reps} répétitions",
+    'home.language': "Langue",
+    'session.exerciseOf': "Exercice {n}/{total}",
+    'session.skip': "Suivant",
+    'between.eyebrow': "Bien joué — exercice suivant",
+    'between.countdown': "Reprise automatique dans {s} s",
+    'between.go': "Je suis prêt",
+    'done.perExercise': "Détail par exercice",
+    'done.repsShort': "rép.",
+    'done.notDone': "non réalisé",
 
     'advanced.eyebrow': 'Options avancées',
     'advanced.title': 'Choisir un exercice',
@@ -243,12 +274,27 @@ const STRINGS: Record<Locale, Dict> = {
 
     'home.greeting': 'مرحباً {name}',
     'home.ready': 'جلستك جاهزة',
-    'home.sessionInfo': '{count} تمرين · حوالي {minutes} دقيقة',
+    'home.sessionInfo': '{count} تمارين · حوالي {minutes} دقيقة',
     'home.start': 'ابدأ الجلسة',
     'home.videoConsent': 'تسجيل فيديو لأخصائي العلاج الطبيعي',
     'home.videoConsentHint': 'اختياري. بدون هذا الخيار، يُحفظ الهيكل العظمي فقط (لا صورة لك).',
     'home.advanced': 'خيارات متقدمة',
     'home.editProfile': 'تعديل الملف الشخصي',
+    'home.setupHint': 'ضع الهاتف واقفاً على بعد مترين تقريباً. يجب أن يظهر جسمك بالكامل على الشاشة.',
+    'banner.prototype': 'نموذج أولي — التمارين لم يُصادق عليها سريرياً بعد',
+    'done.titleNone': 'تم إيقاف الجلسة.',
+    'session.finish': 'إنهاء',
+    'home.programTitle': "برنامج اليوم",
+    'home.repsEach': "{reps} تكرارات",
+    'home.language': "اللغة",
+    'session.exerciseOf': "التمرين {n}/{total}",
+    'session.skip': "التالي",
+    'between.eyebrow': "أحسنت — التمرين التالي",
+    'between.countdown': "استئناف تلقائي خلال {s} ث",
+    'between.go': "أنا جاهز",
+    'done.perExercise': "تفاصيل كل تمرين",
+    'done.repsShort': "تكرار",
+    'done.notDone': "لم يُنجز",
 
     'advanced.eyebrow': 'خيارات متقدمة',
     'advanced.title': 'اختر تمريناً',
@@ -345,12 +391,27 @@ const STRINGS: Record<Locale, Dict> = {
 
     'home.greeting': 'Hello {name}',
     'home.ready': 'Your session is ready',
-    'home.sessionInfo': '{count} exercise · about {minutes} min',
+    'home.sessionInfo': '{count} exercises · about {minutes} min',
     'home.start': 'Start session',
     'home.videoConsent': 'Record a video for my physiotherapist',
     'home.videoConsentHint': 'Optional. Without this, only the skeleton (no image of you) is kept.',
     'home.advanced': 'Advanced options',
     'home.editProfile': 'Edit profile',
+    'home.setupHint': 'Stand the phone upright about 2 metres away. Your whole body should be visible on screen.',
+    'banner.prototype': 'Prototype — exercises not yet clinically validated',
+    'done.titleNone': 'Session stopped.',
+    'session.finish': 'Finish',
+    'home.programTitle': "Today's programme",
+    'home.repsEach': "{reps} repetitions",
+    'home.language': "Language",
+    'session.exerciseOf': "Exercise {n}/{total}",
+    'session.skip': "Next",
+    'between.eyebrow': "Well done — next exercise",
+    'between.countdown': "Starting automatically in {s}s",
+    'between.go': "I'm ready",
+    'done.perExercise': "By exercise",
+    'done.repsShort': "reps",
+    'done.notDone': "not done",
 
     'advanced.eyebrow': 'Advanced options',
     'advanced.title': 'Choose an exercise',

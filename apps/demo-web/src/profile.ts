@@ -42,22 +42,37 @@ export function saveProfile(profile: PatientProfile): void {
 }
 
 /**
- * Which of the five shipped exercises best matches a rehab area.
+ * A day's programme for a rehab area: an ordered list of the shipped
+ * exercises.
  *
  * This is a placeholder standing in for a clinician-assigned programme (see
  * README — a clinician prescribes, the app coaches). It exists so the demo has
- * *something* sensible to put on the home screen rather than an empty state,
- * not as a substitute for clinical assignment.
+ * a sensible, realistic session on the home screen, not as a substitute for
+ * clinical assignment.
+ *
+ * Order matters for the patient, not just the muscles: seated → standing →
+ * lying, so nobody gets up off the floor to sit back down on a chair.
  */
-const AREA_TO_EXERCISE: Record<RehabArea, string> = {
-  knee: 'seated_knee_extension',
-  hip: 'standing_hip_abduction',
-  ankle: 'heel_raises',
-  back: 'sit_to_stand',
-  shoulder: 'sit_to_stand', // no upper-body exercise shipped yet — closest available
-  other: 'straight_leg_raise',
+export interface ProgramItem {
+  exerciseId: string;
+  targetReps: number;
+}
+
+const AREA_TO_PROGRAM: Record<RehabArea, string[]> = {
+  knee: ['seated_knee_extension', 'sit_to_stand', 'straight_leg_raise'],
+  hip: ['sit_to_stand', 'standing_hip_abduction', 'straight_leg_raise'],
+  ankle: ['seated_knee_extension', 'sit_to_stand', 'heel_raises'],
+  back: ['sit_to_stand', 'standing_hip_abduction', 'straight_leg_raise'],
+  // No upper-body exercise shipped yet — a general lower-limb programme.
+  shoulder: ['sit_to_stand', 'standing_hip_abduction', 'heel_raises'],
+  other: ['seated_knee_extension', 'sit_to_stand', 'heel_raises'],
 };
 
-export function exerciseForArea(area: RehabArea): string {
-  return AREA_TO_EXERCISE[area];
+export const DEFAULT_TARGET_REPS = 10;
+
+export function programForArea(area: RehabArea): ProgramItem[] {
+  return AREA_TO_PROGRAM[area].map((exerciseId) => ({
+    exerciseId,
+    targetReps: DEFAULT_TARGET_REPS,
+  }));
 }

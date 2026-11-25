@@ -7,6 +7,8 @@
     <!-- Day 1 verification: install to the iOS home screen and confirm
          getUserMedia still works in standalone mode. Fallback is a Safari link. -->
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,7 +23,7 @@
   <body>
     <div id="draft-banner" class="banner">
       <span class="banner__dot"></span>
-      Prototype — définitions non validées cliniquement
+      <span data-i18n="banner.prototype">Prototype — définitions non validées cliniquement</span>
     </div>
 
     <!-- Step 1: language -->
@@ -116,9 +118,11 @@
 
       <div class="glass form-card home-card">
         <div class="home-card__row">
-          <span id="home-exercise-name" class="home-card__title">—</span>
+          <span class="home-card__title" data-i18n="home.programTitle">Programme du jour</span>
           <span id="home-session-info" class="home-card__meta">—</span>
         </div>
+
+        <ol id="home-program" class="program-list"></ol>
 
         <label class="consent">
           <input id="video-consent" type="checkbox" />
@@ -133,7 +137,12 @@
         </label>
       </div>
 
+      <p class="lead setup-hint" data-i18n="home.setupHint">
+        Posez le téléphone debout, à environ 2 mètres. Tout votre corps doit être visible à l’écran.
+      </p>
+
       <div class="stack push-end">
+        <p id="home-error" class="error" hidden></p>
         <button id="btn-home-start" class="btn btn--primary btn--lg">
           <span data-i18n="home.start">Commencer la séance</span>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="btn__icon">
@@ -144,6 +153,7 @@
         <div class="link-row">
           <button id="btn-home-advanced" class="link-btn" data-i18n="home.advanced">Options avancées</button>
           <button id="btn-home-edit-profile" class="link-btn" data-i18n="home.editProfile">Modifier le profil</button>
+          <button id="btn-home-language" class="link-btn" data-i18n="home.language">Langue</button>
         </div>
       </div>
     </section>
@@ -208,6 +218,7 @@
         <div class="stage__scrim"></div>
 
         <div id="hud" class="hud">
+          <div id="hud-exercise" class="hud-exercise" hidden></div>
           <div class="ring-wrap">
             <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
               <defs>
@@ -219,7 +230,7 @@
               <circle class="ring__track" cx="100" cy="100" r="88" />
               <circle id="ring-progress" class="ring__progress" cx="100" cy="100" r="88" />
             </svg>
-            <div id="rep-counter" class="counter">
+            <div id="rep-counter" class="counter" dir="ltr">
               <span id="rep-done">0</span>
               <span id="rep-of"><span class="slash">/</span><span id="rep-target">10</span></span>
               <span id="counter-unit" class="slash" hidden>°</span>
@@ -234,15 +245,30 @@
         <div id="cue" class="cue" hidden></div>
 
         <div class="controls">
-          <button id="btn-record" class="chip">
+          <button id="btn-record" class="chip" hidden>
             <span class="chip__rec"></span>
             <span id="btn-record-label" data-i18n="record.start">Enregistrer</span>
           </button>
           <button id="btn-debug" class="chip" data-i18n="debug.label">Détails</button>
-          <button id="btn-stop" class="btn btn--danger">Terminer</button>
+          <button id="btn-skip" class="chip" data-i18n="session.skip" hidden>Suivant</button>
+          <button id="btn-stop" class="btn btn--danger" data-i18n="session.finish">Terminer</button>
         </div>
 
         <pre id="debug" class="debug" hidden></pre>
+
+        <!-- Rest card between two exercises of the programme. The camera keeps
+             running underneath so there is no model reload between exercises. -->
+        <div id="between" class="between" hidden>
+          <div class="glass between__card">
+            <p class="eyebrow eyebrow--success" data-i18n="between.eyebrow">Bien joué — exercice suivant</p>
+            <p id="between-step" class="between__step">—</p>
+            <h2 id="between-name" class="between__name">—</h2>
+            <p id="between-reps" class="between__meta">—</p>
+            <p id="between-setup" class="between__setup">—</p>
+            <button id="btn-between-go" class="btn btn--primary btn--lg" data-i18n="between.go">Je suis prêt</button>
+            <p id="between-countdown" class="between__countdown">—</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -250,7 +276,7 @@
     <section id="screen-done" class="screen screen--center" hidden>
       <header class="hero hero--tight">
         <p class="eyebrow eyebrow--success" data-i18n="done.eyebrow">Séance terminée</p>
-        <h1 data-i18n="done.title">Belle séance.</h1>
+        <h1 id="done-title">Belle séance.</h1>
       </header>
 
       <div class="bento">
@@ -270,9 +296,9 @@
 
       <div class="glass estimate">
         <div class="estimate__row">
-          <span data-i18n="done.romLabel">Amplitude estimée</span>
-          <b id="sum-rom">—</b>
+          <span data-i18n="done.perExercise">Détail par exercice</span>
         </div>
+        <ul id="sum-exercises" class="result-list"></ul>
         <small data-i18n="done.romDisclaimer">
           Valeur indicative issue de la caméra — ce n’est pas une mesure clinique.
         </small>

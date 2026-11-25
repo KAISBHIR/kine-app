@@ -17,17 +17,20 @@ import {
   type ExerciseDefinition,
 } from '@kine/movement-engine';
 import { getExercise, listExercises } from '@kine/exercise-library';
-import { LandmarkRecorder } from '@kine/pose-source';
+import { LandmarkRecorder, MockPoseSource } from '@kine/pose-source';
+import { cleanReps } from '@kine/movement-engine';
 import { WebPoseSource } from '@kine/pose-source/web';
 import { drawSkeleton, fitOverlay } from './skeleton';
 import { WebSpeechVoice } from './voice';
 import { downloadFixture } from './recorder';
 import { applyI18n, getLocale, loadStoredLocale, setLocale, t } from './i18n';
 import {
-  exerciseForArea,
+  DEFAULT_TARGET_REPS,
   loadProfile,
+  programForArea,
   saveProfile,
   type PatientProfile,
+  type ProgramItem,
   type Prescriber,
   type RehabArea,
 } from './profile';
@@ -66,8 +69,19 @@ const els = {
   btnProfileBack: must<HTMLButtonElement>('btn-profile-back'),
 
   homeGreeting: must<HTMLElement>('home-greeting'),
-  homeExerciseName: must<HTMLElement>('home-exercise-name'),
+  homeProgram: must<HTMLOListElement>('home-program'),
   homeSessionInfo: must<HTMLElement>('home-session-info'),
+  btnHomeLanguage: must<HTMLButtonElement>('btn-home-language'),
+  hudExercise: must<HTMLElement>('hud-exercise'),
+  btnSkip: must<HTMLButtonElement>('btn-skip'),
+  between: must<HTMLElement>('between'),
+  betweenStep: must<HTMLElement>('between-step'),
+  betweenName: must<HTMLElement>('between-name'),
+  betweenReps: must<HTMLElement>('between-reps'),
+  betweenSetup: must<HTMLElement>('between-setup'),
+  betweenCountdown: must<HTMLElement>('between-countdown'),
+  btnBetweenGo: must<HTMLButtonElement>('btn-between-go'),
+  sumExercises: must<HTMLUListElement>('sum-exercises'),
   videoConsent: must<HTMLInputElement>('video-consent'),
   btnHomeStart: must<HTMLButtonElement>('btn-home-start'),
   btnHomeAdvanced: must<HTMLButtonElement>('btn-home-advanced'),
@@ -96,10 +110,11 @@ const els = {
   cue: must<HTMLElement>('cue'),
   debug: must<HTMLElement>('debug'),
 
+  homeError: must<HTMLElement>('home-error'),
+  doneTitle: must<HTMLElement>('done-title'),
   sumReps: must<HTMLElement>('sum-reps'),
   sumQuality: must<HTMLElement>('sum-quality'),
   sumDuration: must<HTMLElement>('sum-duration'),
-  sumRom: must<HTMLElement>('sum-rom'),
   sumCues: must<HTMLElement>('sum-cues'),
 
   replayCard: must<HTMLElement>('replay-card'),
@@ -137,16 +152,60 @@ type Stage =
   | 'idle'
   | 'setup'
   | 'active'
+  | 'between'
   | 'done'
   | 'calibrated';
 type Mode = 'session' | 'calibrate';
 
 let stage: Stage = 'language';
 let mode: Mode = 'session';
-let source: WebPoseSource | null = null;
+let source: WebPoseSource | MockPoseSource | null = null;
+
+/**
+ * `?mock` replaces the camera with the engine's synthetic patient (repeated
+ * knee extensions, sped up). Test-only: it lets the whole programme flow —
+ * reps, rest card, next exercise, summary — run end to end with nobody in
+ * front of the camera.
+ */
+const MOCK_POSE = new URLSearchParams(location.search).has('mock');
+
+function createSource(): WebPoseSource | MockPoseSource {
+  if (!MOCK_POSE) return new WebPoseSource({ video: els.video, facingMode: 'user' });
+  const { frames } = cleanReps(60, 165, 4000, { noise: 0.004, seed: 7 });
+  return new MockPoseSource({ frames, speed: 6, loop: true });
+}
 let session: ExerciseSession | null = null;
 let def: ExerciseDefinition = getExercise('seated_knee_extension');
-let targetReps = 10;
+let targetReps = DEFAULT_TARGET_REPS;
+
+/**
+ * The exercises in this run, in order. A run from Home is the patient's whole
+ * programme; a run from Advanced options is a programme of one.
+ */
+let program: ProgramItem[] = [];
+let programIndex = 0;
+
+type Summary = ReturnType<ExerciseSession['summary']>;
+interface ExerciseResult {
+  def: ExerciseDefinition;
+  targetReps: number;
+  /** Null when the patient skipped the exercise before it started. */
+  summary: Summary | null;
+}
+let results: ExerciseResult[] = [];
+
+/** Seconds of rest between two exercises before the next one starts by itself. */
+const REST_SECONDS = 20;
+let restTimer = 0;
+let restRemaining = 0;
+
+/**
+ * Replay frames are re-timed so the rest between exercises does not show up
+ * as a long frozen skeleton in the playback.
+ */
+let replayShift = 0;
+let lastReplayT: number | null = null;
+let rebaseReplay = false;
 
 let setupGoodSince: number | null = null;
 let lastPartialCueAt = -Infinity;
@@ -189,13 +248,10 @@ function populateExerciseOptions(): void {
 }
 
 function boot(): void {
-  const stored = loadStoredLocale();
-  if (!stored) {
-    showScreen('language');
-    return;
-  }
-
-  setLocale(stored);
+  // French is the primary language: a first visit opens straight onto the
+  // French profile form. Arabic and English stay one tap away (the back link
+  // on the profile form, or "Langue" on Home).
+  setLocale(loadStoredLocale() ?? 'fr');
   applyI18n();
   populateExerciseOptions();
   voice = new WebSpeechVoice(getLocale());
@@ -217,13 +273,28 @@ function goHome(profile?: PatientProfile): void {
 function renderHome(profile: PatientProfile): void {
   els.homeGreeting.textContent = t('home.greeting', { name: profile.name });
 
-  const exerciseId = exerciseForArea(profile.area);
-  const exerciseDef = getExercise(exerciseId);
-  els.exerciseSelect.value = exerciseId;
+  const items = programForArea(profile.area);
+  els.exerciseSelect.value = items[0]!.exerciseId;
 
-  els.homeExerciseName.textContent = exerciseName(exerciseDef.nameKey, getLocale());
-  const minutes = Math.max(1, Math.round((targetReps * 5) / 60));
-  els.homeSessionInfo.textContent = t('home.sessionInfo', { count: 1, minutes });
+  els.homeProgram.innerHTML = '';
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.className = 'program-list__item';
+    const name = document.createElement('span');
+    name.className = 'program-list__name';
+    name.textContent = exerciseName(getExercise(item.exerciseId).nameKey, getLocale());
+    const reps = document.createElement('span');
+    reps.className = 'program-list__meta';
+    reps.textContent = t('home.repsEach', { reps: item.targetReps });
+    li.append(name, reps);
+    els.homeProgram.append(li);
+  }
+
+  // ~5 s per rep plus the rest between exercises.
+  const seconds =
+    items.reduce((sum, i) => sum + i.targetReps * 5, 0) + (items.length - 1) * REST_SECONDS;
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  els.homeSessionInfo.textContent = t('home.sessionInfo', { count: items.length, minutes });
 }
 
 for (const btn of document.querySelectorAll<HTMLButtonElement>('.lang-btn')) {
@@ -260,7 +331,16 @@ els.btnProfileContinue.addEventListener('click', () => {
   goHome(profile);
 });
 
-els.btnHomeStart.addEventListener('click', () => void begin('session'));
+// The fixture recorder downloads raw landmark JSON — a developer tool, not
+// something a patient or a demo tester should ever tap by accident.
+els.btnRecord.hidden = !new URLSearchParams(location.search).has('dev');
+
+let beganFrom: Stage = 'home';
+
+els.btnHomeStart.addEventListener('click', () => {
+  beganFrom = 'home';
+  void begin('session');
+});
 els.btnHomeAdvanced.addEventListener('click', () => showScreen('idle'));
 els.btnHomeEditProfile.addEventListener('click', () => {
   const p = loadProfile();
@@ -273,14 +353,23 @@ els.btnHomeEditProfile.addEventListener('click', () => {
   showScreen('profile');
 });
 els.btnStartBack.addEventListener('click', () => goHome());
+els.btnHomeLanguage.addEventListener('click', () => showScreen('language'));
+els.btnSkip.addEventListener('click', () => completeExercise());
+els.btnBetweenGo.addEventListener('click', () => startNextExercise());
 els.btnProfileBack.addEventListener('click', () => {
   const p = loadProfile();
   if (p) goHome(p);
   else showScreen('language');
 });
 
-els.btnStart.addEventListener('click', () => void begin('session'));
-els.btnCalibrate.addEventListener('click', () => void begin('calibrate'));
+els.btnStart.addEventListener('click', () => {
+  beganFrom = 'idle';
+  void begin('session');
+});
+els.btnCalibrate.addEventListener('click', () => {
+  beganFrom = 'idle';
+  void begin('calibrate');
+});
 els.btnStop.addEventListener('click', () => finish());
 els.btnAgain.addEventListener('click', () => goHome());
 els.btnCalAgain.addEventListener('click', () => showScreen('idle'));
@@ -302,30 +391,32 @@ boot();
 
 async function begin(nextMode: Mode): Promise<void> {
   els.startError.hidden = true;
+  els.homeError.hidden = true;
   mode = nextMode;
-  def = getExercise(els.exerciseSelect.value);
-  targetReps = Number(els.targetSelect.value);
 
-  session = nextMode === 'session' ? new ExerciseSession(def) : null;
+  // Home runs the patient's whole programme; Advanced runs the one exercise
+  // picked there (also the only thing calibration ever works on).
+  const profile = loadProfile();
+  program =
+    beganFrom === 'home' && nextMode === 'session' && profile
+      ? programForArea(profile.area)
+      : [{ exerciseId: els.exerciseSelect.value, targetReps: Number(els.targetSelect.value) }];
+  results = [];
+
   calFrames = [];
   sessionFrames = [];
+  replayShift = 0;
+  lastReplayT = null;
   wantsVideo = nextMode === 'session' && els.videoConsent.checked;
   lastVideoBlob = null;
-  setupGoodSince = null;
-  lastPartialCueAt = -Infinity;
-  trackingOk = true;
   fpsWindow = [];
 
-  els.repDone.textContent = nextMode === 'session' ? '0' : '—';
-  els.repTarget.textContent = String(targetReps);
-  els.repOf.hidden = nextMode === 'calibrate';
-  els.counterUnit.hidden = nextMode === 'session';
+  loadExercise(0);
   setStatus(t('status.preparing'), '');
-  hideCue();
 
   showScreen('setup');
 
-  source = new WebPoseSource({ video: els.video, facingMode: 'user' });
+  source = createSource();
   source.onFrame(onFrame);
   source.onError((e) =>
     setStatus(t('status.cameraError', { message: e.message }), 'lost'),
@@ -334,18 +425,118 @@ async function begin(nextMode: Mode): Promise<void> {
   try {
     await source.start();
     fitOverlay(els.video, els.overlay);
-    speak('cue.setup_distance');
+    speak(def.camera.setupCueKey);
+    // The pose source only emits a frame once it finds a body. Without this,
+    // someone standing too close or off to the side sees "Getting ready…"
+    // forever and has no idea the camera is already waiting for them.
+    if (stage === 'setup' && setupGoodSince === null) setStatus(t('status.stepBack'), 'lost');
 
     if (wantsVideo) {
-      const stream = source.mediaStream;
+      const stream = source instanceof WebPoseSource ? source.mediaStream : null;
       wantsVideo = stream !== null && videoRecorder.start(stream);
     }
   } catch (e) {
     source = null;
-    showScreen('idle');
-    els.startError.hidden = false;
-    els.startError.textContent = cameraErrorMessage(e);
+    const errorEl = beganFrom === 'home' ? els.homeError : els.startError;
+    if (beganFrom === 'home') goHome();
+    else showScreen('idle');
+    errorEl.hidden = false;
+    errorEl.textContent = cameraErrorMessage(e);
   }
+}
+
+/** Points the engine and the HUD at exercise `index` of the programme. */
+function loadExercise(index: number): void {
+  programIndex = index;
+  const item = program[index]!;
+  def = getExercise(item.exerciseId);
+  targetReps = item.targetReps;
+
+  session = mode === 'session' ? new ExerciseSession(def) : null;
+  setupGoodSince = null;
+  lastPartialCueAt = -Infinity;
+  trackingOk = true;
+  rebaseReplay = true;
+
+  els.repDone.textContent = mode === 'session' ? '0' : '—';
+  els.repTarget.textContent = String(targetReps);
+  els.repOf.hidden = mode === 'calibrate';
+  els.counterUnit.hidden = mode === 'session';
+
+  const name = exerciseName(def.nameKey, getLocale());
+  els.hudExercise.hidden = mode !== 'session';
+  els.hudExercise.textContent =
+    program.length > 1
+      ? `${t('session.exerciseOf', { n: index + 1, total: program.length })} · ${name}`
+      : name;
+  els.btnSkip.hidden = !(mode === 'session' && index < program.length - 1);
+  hideCue();
+}
+
+/**
+ * Closes the current exercise — target reached, or the patient tapped "Next" —
+ * and either moves to the rest card or ends the whole run.
+ */
+function completeExercise(): void {
+  if (stage !== 'setup' && stage !== 'active') return;
+  recordCurrentResult();
+
+  if (programIndex >= program.length - 1) {
+    finish();
+    return;
+  }
+  showBetween();
+}
+
+function recordCurrentResult(): void {
+  if (mode !== 'session' || results.length > programIndex) return;
+  const started = session !== null && (stage === 'active' || session.repCount > 0);
+  results.push({ def, targetReps, summary: started && session ? session.summary() : null });
+}
+
+function showBetween(): void {
+  stage = 'between';
+  hideCue();
+  voice.stop();
+  speak('cue.set_complete');
+
+  const next = program[programIndex + 1]!;
+  const nextDef = getExercise(next.exerciseId);
+  els.betweenStep.textContent = t('session.exerciseOf', {
+    n: programIndex + 2,
+    total: program.length,
+  });
+  els.betweenName.textContent = exerciseName(nextDef.nameKey, getLocale());
+  els.betweenReps.textContent = t('home.repsEach', { reps: next.targetReps });
+  els.betweenSetup.textContent = say(nextDef.camera.setupCueKey, getLocale());
+  els.between.hidden = false;
+  els.btnSkip.hidden = true;
+  setStatus(t('status.preparing'), '');
+
+  restRemaining = REST_SECONDS;
+  renderCountdown();
+  clearInterval(restTimer);
+  restTimer = window.setInterval(() => {
+    restRemaining -= 1;
+    if (restRemaining <= 0) startNextExercise();
+    else renderCountdown();
+  }, 1000);
+}
+
+function renderCountdown(): void {
+  els.betweenCountdown.textContent = t('between.countdown', { s: restRemaining });
+}
+
+function startNextExercise(): void {
+  if (stage !== 'between') return;
+  clearInterval(restTimer);
+  els.between.hidden = true;
+  loadExercise(programIndex + 1);
+  stage = 'setup';
+  setStatus(t('status.stepBack'), 'lost');
+  speak('cue.next_exercise');
+  const setupCue = def.camera.setupCueKey;
+  setTimeout(() => speak(setupCue), 1200);
 }
 
 function onFrame(frame: Frame): void {
@@ -366,12 +557,22 @@ function onFrame(frame: Frame): void {
       const angle = computeSignal(frame, def.signal, session?.side ?? 'left');
       els.repDone.textContent = angle === null ? '—' : String(Math.round(angle));
     } else if (session) {
-      sessionFrames.push(frame);
+      pushReplayFrame(frame);
       for (const ev of session.push(frame)) handleEvent(ev);
     }
   }
 
   if (debugVisible) renderDebug(frame);
+}
+
+function pushReplayFrame(frame: Frame): void {
+  if (rebaseReplay) {
+    rebaseReplay = false;
+    if (lastReplayT !== null) replayShift = frame.t - lastReplayT - 33;
+  }
+  const shifted = frame.t - replayShift;
+  sessionFrames.push({ ...frame, t: shifted });
+  lastReplayT = shifted;
 }
 
 function handleSetup(frame: Frame): void {
@@ -405,7 +606,7 @@ function handleEvent(ev: EngineEvent): void {
     case 'rep': {
       els.repDone.textContent = String(ev.index);
       if (ev.index <= 15) voice.say(countWord(ev.index, getLocale()), 'count');
-      if (ev.index >= targetReps) finish();
+      if (ev.index >= targetReps) completeExercise();
       break;
     }
 
@@ -441,9 +642,13 @@ function handleEvent(ev: EngineEvent): void {
 function finish(): void {
   if (stage === 'done' || stage === 'calibrated') return;
 
+  clearInterval(restTimer);
+  els.between.hidden = true;
+  // "Finish" mid-exercise still counts what was done in it.
+  if (stage === 'setup' || stage === 'active') recordCurrentResult();
+
   const captured = calFrames;
   const replayFrames = sessionFrames;
-  const summary = session?.summary() ?? null;
 
   // MediaRecorder.stop() must run BEFORE the camera tracks are stopped below,
   // or the last buffered chunk of video can be lost.
@@ -459,20 +664,7 @@ function finish(): void {
     return;
   }
 
-  if (summary) {
-    els.sumReps.textContent = String(summary.reps);
-    els.sumQuality.textContent = summary.quality === null ? '—' : `${summary.quality}%`;
-    els.sumDuration.textContent = formatDuration(summary.durationMs);
-    els.sumRom.textContent =
-      summary.bestPeakDeg === null ? '—' : `${Math.round(summary.bestPeakDeg)}°`;
-
-    const cueEntries = Object.entries(summary.cues);
-    els.sumCues.innerHTML = cueEntries.length
-      ? `<b>${escapeHtml(t('done.cuesTitle'))}</b><br />` +
-        cueEntries.map(([id, n]) => `${escapeHtml(id)} × ${n}`).join('<br />')
-      : '';
-  }
-
+  renderSummary();
   showScreen('done');
   speak('cue.session_complete');
   setupReplay(replayFrames);
@@ -482,6 +674,66 @@ function finish(): void {
       if (blob) showVideoCard(blob);
     });
   }
+}
+
+function renderSummary(): void {
+  const done = results.flatMap((r) => (r.summary ? [{ ...r, summary: r.summary }] : []));
+  const totalReps = done.reduce((sum, r) => sum + r.summary.reps, 0);
+  const totalMs = done.reduce((sum, r) => sum + r.summary.durationMs, 0);
+  // Mean quality weighted by reps, so a 1-rep exercise does not count as much
+  // as a full set of ten.
+  let qualitySum = 0;
+  let ratedReps = 0;
+  for (const r of done) {
+    if (r.summary.quality === null || r.summary.reps === 0) continue;
+    qualitySum += r.summary.quality * r.summary.reps;
+    ratedReps += r.summary.reps;
+  }
+  const quality = ratedReps ? Math.round(qualitySum / ratedReps) : null;
+
+  els.doneTitle.textContent = t(totalReps > 0 ? 'done.title' : 'done.titleNone');
+  els.sumReps.textContent = String(totalReps);
+  els.sumQuality.textContent = quality === null ? '—' : `${quality}%`;
+  els.sumDuration.textContent = formatDuration(totalMs);
+
+  // One row per exercise in the programme, including ones never reached, so
+  // the patient (and clinician) sees the whole plan against what was done.
+  els.sumExercises.innerHTML = '';
+  for (let i = 0; i < program.length; i++) {
+    const item = program[i]!;
+    const s = results[i]?.summary;
+    const li = document.createElement('li');
+    li.className = 'result-list__item';
+    const name = document.createElement('span');
+    name.className = 'result-list__name';
+    name.textContent = exerciseName(getExercise(item.exerciseId).nameKey, getLocale());
+    const meta = document.createElement('span');
+    meta.className = 'result-list__meta';
+
+    if (!s || (s.reps === 0 && s.durationMs === 0)) {
+      meta.textContent = t('done.notDone');
+      li.classList.add('result-list__item--muted');
+    } else {
+      const parts = [`${s.reps}/${item.targetReps} ${t('done.repsShort')}`];
+      if (s.quality !== null) parts.push(`${t('done.quality')} ${s.quality}%`);
+      if (s.bestPeakDeg !== null) parts.push(`~${Math.round(s.bestPeakDeg)}°`);
+      meta.textContent = parts.join(' · ');
+    }
+    li.append(name, meta);
+    els.sumExercises.append(li);
+  }
+
+  const cueCounts = new Map<string, number>();
+  for (const r of done) {
+    for (const [id, n] of Object.entries(r.summary.cues)) {
+      const label = cueLabel(r.def, id);
+      cueCounts.set(label, (cueCounts.get(label) ?? 0) + n);
+    }
+  }
+  els.sumCues.innerHTML = cueCounts.size
+    ? `<b>${escapeHtml(t('done.cuesTitle'))}</b><br />` +
+      [...cueCounts].map(([label, n]) => `${escapeHtml(label)} × ${n}`).join('<br />')
+    : '';
 }
 
 // --- skeleton replay -------------------------------------------------------
@@ -636,7 +888,11 @@ function showScreen(next: Stage): void {
   els.screenProfile.hidden = next !== 'profile';
   els.screenHome.hidden = next !== 'home';
   els.screenStart.hidden = next !== 'idle';
-  els.screenSession.hidden = next !== 'setup' && next !== 'active';
+  els.screenSession.hidden = next !== 'setup' && next !== 'active' && next !== 'between';
+  if (next !== 'between') {
+    clearInterval(restTimer);
+    els.between.hidden = true;
+  }
   els.screenDone.hidden = next !== 'done';
   els.screenCalibrated.hidden = next !== 'calibrated';
 
@@ -738,7 +994,7 @@ function renderDebug(frame: Frame): void {
     `seuils     ${def.rep.exitDeg}° / ${def.rep.enterDeg}°`,
     `reps       ${session?.repCount ?? 0} / ${targetReps}`,
     `suivi      ${trackingOk ? 'ok' : 'perdu'}`,
-    `visibility ${source?.modelReportsVisibility ? 'modèle' : 'heuristique'}`,
+    `visibility ${source instanceof WebPoseSource && source.modelReportsVisibility ? 'modèle' : 'heuristique'}`,
     `fps        ${fps.toFixed(1)}`,
     `vidéo      ${wantsVideo ? 'oui' : 'non'}`,
     `calib      ${mode === 'calibrate' ? calFrames.length + ' frames' : '—'}`,
@@ -756,6 +1012,17 @@ function cameraErrorMessage(e: unknown): string {
   if (name === 'NotFoundError') return t('error.cameraNotFound');
   if (!window.isSecureContext) return t('error.insecureContext');
   return e instanceof Error ? e.message : String(e);
+}
+
+/** Summary counts are keyed by rule id; show the patient the cue they heard. */
+function cueLabel(exercise: ExerciseDefinition, ruleId: string): string {
+  const rule = exercise.formRules.find((r) => r.id === ruleId);
+  if (!rule) return ruleId;
+  try {
+    return say(rule.cueKey, getLocale());
+  } catch {
+    return ruleId;
+  }
 }
 
 function escapeHtml(s: string): string {
