@@ -60,7 +60,12 @@ export interface ProgramItem {
   targetReps: number;
 }
 
-const UPPER_BODY_SEATED = ['seated_shoulder_abduction', 'seated_overhead_reach', 'seated_elbow_flexion'];
+/**
+ * The only exercises the demo offers: seated, arms only, no standing up and
+ * no leg work. Older testers must never be asked to get up.
+ */
+export const SEATED_EXERCISES = ['seated_shoulder_abduction', 'seated_overhead_reach', 'seated_elbow_flexion'];
+const UPPER_BODY_SEATED = SEATED_EXERCISES;
 
 const AREA_TO_PROGRAM: Record<RehabArea, string[]> = {
   // Entirely seated, arms only: the default, and the easiest to try out.
@@ -92,8 +97,12 @@ export function exercisePosition(exerciseId: string): Position {
 
 export const DEFAULT_TARGET_REPS = 10;
 
-export function programForArea(area: RehabArea): ProgramItem[] {
-  return AREA_TO_PROGRAM[area].map((exerciseId) => ({
+export function programForArea(_area: RehabArea): ProgramItem[] {
+  // Every area gets the seated arm programme. A profile saved by an older
+  // version of the demo (default area "knee") must not bring leg exercises
+  // back. AREA_TO_PROGRAM is kept for when clinicians assign real programmes.
+  void AREA_TO_PROGRAM;
+  return UPPER_BODY_SEATED.map((exerciseId) => ({
     exerciseId,
     targetReps: DEFAULT_TARGET_REPS,
   }));

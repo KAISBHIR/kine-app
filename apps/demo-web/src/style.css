@@ -48,7 +48,49 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  --appbar-bg: rgba(255, 255, 255, 0.92);
+  --tip-text: #0b4a45;
+  --ill-body: #31505a;
+  --ill-ghost: #a9bcc2;
+  --ill-ground: #c3d0d5;
+
   color-scheme: light;
+}
+
+/* Dark theme: chosen with the moon button in the app bar. */
+:root[data-theme="dark"] {
+  --bg: #0f1518;
+  --surface: #172025;
+  --surface-2: #1c262c;
+  --border: #29353c;
+  --border-strong: #3b4a52;
+
+  --text: #edf3f5;
+  --muted: #aebcc3;
+  --muted-2: #8d9ca4;
+
+  --primary: #2cc4b2;
+  --primary-hover: #4dd6c5;
+  --primary-soft: rgba(44, 196, 178, 0.14);
+  --primary-ink: #04211e;
+
+  --ok: #4ade80;
+  --ok-soft: rgba(74, 222, 128, 0.12);
+  --warn-text: #fbbf57;
+  --warn-bg: rgba(251, 191, 87, 0.12);
+  --warn-border: rgba(251, 191, 87, 0.3);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+
+  --shadow-sm: none;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --appbar-bg: rgba(15, 21, 24, 0.9);
+  --tip-text: #c9f1eb;
+  --ill-body: #cfe0e4;
+  --ill-ghost: #5d7480;
+  --ill-ground: #3e5058;
+
+  color-scheme: dark;
 }
 
 * {
@@ -114,7 +156,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--appbar-bg);
   backdrop-filter: saturate(1.4) blur(12px);
   -webkit-backdrop-filter: saturate(1.4) blur(12px);
   border-bottom: 1px solid var(--border);
@@ -649,12 +691,12 @@ h1 {
 }
 
 .ill-body {
-  stroke: #31505a;
+  stroke: var(--ill-body);
   stroke-width: 4;
 }
 
 .ill-ghost {
-  stroke: #a9bcc2;
+  stroke: var(--ill-ghost);
   stroke-width: 3.5;
   stroke-dasharray: 1 6;
 }
@@ -665,7 +707,7 @@ h1 {
 }
 
 .ill-ground {
-  stroke: #c3d0d5;
+  stroke: var(--ill-ground);
   stroke-width: 2;
 }
 
@@ -676,7 +718,7 @@ h1 {
   padding: 16px 18px;
   border-radius: var(--radius-lg);
   background: var(--primary-soft);
-  color: #0b4a45;
+  color: var(--tip-text);
   font-size: 16.5px;
   line-height: 1.5;
 }
@@ -956,6 +998,9 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  /* Selfie view: people expect a mirror. Video and skeleton flip together,
+     so they stay aligned; the engine still sees the real, unflipped frames. */
+  transform: scaleX(-1);
 }
 
 .stage__scrim {
@@ -1198,7 +1243,8 @@ h1 {
   max-width: 460px;
   padding: 22px 20px 16px;
   border-radius: var(--radius-lg);
-  background: #fff;
+  background: var(--surface);
+  color: var(--text);
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -1257,5 +1303,136 @@ h1 {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- app bar tools: language + theme ------------------------------------ */
+
+.appbar__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.langswitch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.langswitch__btn {
+  min-width: 42px;
+  height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.langswitch__btn[data-lang="ar"] {
+  font-family: "Noto Sans Arabic", sans-serif;
+  font-size: 17px;
+}
+
+.langswitch__btn[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.iconbtn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.iconbtn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.iconbtn__sun,
+:root[data-theme="dark"] .iconbtn__moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .iconbtn__sun {
+  display: block;
+}
+
+.appbar__brand {
+  min-width: 0;
+}
+
+.appbar__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- small phones -------------------------------------------------------- */
+
+@media (max-width: 420px) {
+  .appbar__inner {
+    padding: 0 14px;
+    gap: 8px;
+  }
+  .appbar__name {
+    font-size: 16px;
+  }
+  .page {
+    padding: 16px 16px calc(28px + env(safe-area-inset-bottom));
+    gap: 16px;
+  }
+  .notice {
+    padding: 0 16px;
+  }
+  h1 {
+    font-size: 27px;
+  }
+  .card {
+    padding: 16px;
+  }
+  .stat b {
+    font-size: 24px;
+  }
+  .program-list__name {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 370px) {
+  .appbar__name {
+    display: none;
+  }
+  .langswitch__btn {
+    min-width: 38px;
+  }
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stats .stat:first-child {
+    grid-column: 1 / -1;
+  }
+  .chip {
+    padding: 0 16px;
+    font-size: 16px;
   }
 }

@@ -29,6 +29,7 @@ import {
   DEFAULT_AREA,
   DEFAULT_TARGET_REPS,
   exercisePosition,
+  SEATED_EXERCISES,
   loadProfile,
   programForArea,
   saveProfile,
@@ -227,7 +228,7 @@ function selectArea(area: RehabArea): void {
   }
 }
 let session: ExerciseSession | null = null;
-let def: ExerciseDefinition = getExercise('seated_knee_extension');
+let def: ExerciseDefinition = getExercise('seated_shoulder_abduction');
 let targetReps = DEFAULT_TARGET_REPS;
 
 /**
@@ -290,7 +291,7 @@ let debugVisible = false;
 
 function populateExerciseOptions(): void {
   els.exerciseSelect.innerHTML = '';
-  for (const d of listExercises()) {
+  for (const d of listExercises().filter((x) => SEATED_EXERCISES.includes(x.id))) {
     const opt = document.createElement('option');
     opt.value = d.id;
     opt.textContent = exerciseName(d.nameKey, getLocale());
@@ -305,6 +306,7 @@ function boot(): void {
   // on the profile form, or "Langue" on Home).
   setLocale(loadStoredLocale() ?? 'fr');
   applyI18n();
+  markActiveLocale();
   populateExerciseOptions();
   voice = new WebSpeechVoice(getLocale());
 
@@ -358,6 +360,54 @@ function renderHome(profile: PatientProfile): void {
   els.homeSessionInfo.textContent = t('home.sessionInfo', { count: items.length, minutes });
 }
 
+// --- language + theme switches (app bar, every screen) ---------------------
+
+function switchLocale(locale: Locale): void {
+  setLocale(locale);
+  applyI18n();
+  populateExerciseOptions();
+  voice = new WebSpeechVoice(getLocale());
+  markActiveLocale();
+  // Re-render the screen the patient is on, in the new language.
+  const profile = loadProfile();
+  if (stage === 'home' && profile) renderHome(profile);
+  if (stage === 'done') renderSummary();
+}
+
+function markActiveLocale(): void {
+  for (const b of document.querySelectorAll<HTMLButtonElement>('.langswitch__btn')) {
+    b.setAttribute('aria-pressed', String(b.dataset.lang === getLocale()));
+  }
+}
+
+for (const b of document.querySelectorAll<HTMLButtonElement>('.langswitch__btn')) {
+  b.addEventListener('click', () => switchLocale(b.dataset.lang as Locale));
+}
+markActiveLocale();
+
+const THEME_KEY = 'kine.theme.v1';
+function applyTheme(theme: 'light' | 'dark'): void {
+  document.documentElement.dataset.theme = theme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0f1518' : '#f3f6f7');
+}
+function storedTheme(): 'light' | 'dark' {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+}
+applyTheme(storedTheme());
+document.getElementById('btn-theme')?.addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch {
+    // Private mode: the toggle still works for this visit.
+  }
+});
+
 for (const btn of document.querySelectorAll<HTMLButtonElement>('.lang-btn')) {
   btn.addEventListener('click', () => {
     const locale = btn.dataset.lang as Locale;
@@ -365,6 +415,7 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>('.lang-btn')) {
     applyI18n();
     populateExerciseOptions();
     voice = new WebSpeechVoice(getLocale());
+    markActiveLocale();
 
     const profile = loadProfile();
     if (profile) {
@@ -956,6 +1007,8 @@ function showScreen(next: Stage): void {
   stage = next;
   // Drives screen-specific chrome in CSS (the app bar hides on the camera).
   document.body.dataset.screen = next;
+  // First visit: nothing to go back to, so no back link on the name form.
+  if (next === 'profile') els.btnProfileBack.hidden = loadProfile() === null;
   if (next !== 'setup' && next !== 'active' && next !== 'between') window.scrollTo(0, 0);
   els.screenLanguage.hidden = next !== 'language';
   els.screenProfile.hidden = next !== 'profile';

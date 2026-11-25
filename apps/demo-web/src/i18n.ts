@@ -145,8 +145,8 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'Avant de commencer',
-    'profile.title': "Votre profil",
-    'profile.lead': 'Ces informations nous aident à adapter votre séance.',
+    'profile.title': "Bienvenue",
+    'profile.lead': "Indiquez votre prénom pour commencer.",
     'profile.name': 'Votre prénom',
     'profile.namePlaceholder': 'Ex. Fatima',
     'profile.age': 'Âge',
@@ -280,8 +280,8 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'قبل البدء',
-    'profile.title': "ملفك الشخصي",
-    'profile.lead': 'تساعدنا هذه المعلومات على تخصيص جلستك.',
+    'profile.title': "مرحباً بك",
+    'profile.lead': "اكتب اسمك الأول للبدء.",
     'profile.name': 'اسمك',
     'profile.namePlaceholder': 'مثال: فاطمة',
     'profile.age': 'العمر',
@@ -411,8 +411,8 @@ const STRINGS: Record<Locale, Dict> = {
     'lang.en': 'English',
 
     'profile.eyebrow': 'Before we start',
-    'profile.title': "Your profile",
-    'profile.lead': 'This helps us tailor your session.',
+    'profile.title': "Welcome",
+    'profile.lead': "Enter your first name to begin.",
     'profile.name': 'Your first name',
     'profile.namePlaceholder': 'e.g. Sarah',
     'profile.age': 'Age',
